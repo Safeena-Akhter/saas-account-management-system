@@ -1,0 +1,761 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+
+enum Role {
+  SUPER_ADMIN
+  BUSINESS_OWNER
+  MANAGER
+  ACCOUNTANT
+  EMPLOYEE
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PARTIALLY_PAID
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+enum PaymentMethod {
+  CASH
+  BANK_TRANSFER
+  CARD
+  CHEQUE
+  ONLINE
+  OTHER
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  EXPIRED
+  CANCELLED
+}
+
+enum BillingCycle {
+  MONTHLY
+  YEARLY
+}
+
+// The 9 notification-triggering events per the Notifications module spec.
+// SYSTEM is the catch-all for anything not tied to one of the other 8 (e.g.
+// a platform-wide announcement) - it exists so the enum never needs a
+// breaking change just to send an ad-hoc message.
+enum NotificationType {
+  INVOICE_CREATED
+  INVOICE_PAID
+  PAYMENT_RECEIVED
+  EXPENSE_ADDED
+  LOW_STOCK
+  NEW_USER_INVITATION
+  COMPANY_UPDATED
+  SUBSCRIPTION_EXPIRY
+  SYSTEM
+}
+
+// Which direction a Payment moves money. RECEIVED = from a customer
+// (existing behavior - default, so every pre-existing row and every
+// existing recordPayment() call site is unaffected). PAID = to a supplier,
+// the new Supplier Payment flow - see payment.service.ts#recordSupplierPayment.
+enum PaymentType {
+  RECEIVED
+  PAID
+}
+
+// Lifecycle of a single Payment row. Defaults to COMPLETED, matching every
+// existing payment (recording one has always meant "money already moved").
+// PENDING is the new, opt-in state for a payment that's been logged but
+// hasn't cleared yet (e.g. a cheque in transit, a bank transfer awaiting
+// confirmation) - see payment.service.ts for the COMPLETED-only guard
+// around Invoice.amountPaid recomputation.
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+model Company {
+  id      String  @id @default(cuid())
+  name    String
+  logoUrl String?
+
+  address      String? @db.VarChar(500)
+  phone        String? @db.VarChar(30)
+  contactEmail String? @db.VarChar(255)
+  taxNumber    String? @db.VarChar(100)
+  currency     String  @default("USD") @db.VarChar(3)
+
+  isActive  Boolean  @default(true)
+  // Soft delete only - Company has cascade-free relations to Users,
+  // Invoices, etc. (see User.company below, which has no `onDelete`, i.e.
+  // MySQL's default RESTRICT), so a hard DELETE would simply fail with a
+  // foreign-key violation the moment any dependent row exists. Excluded
+  // from every platform-admin company query by default (see
+  // platformCompany.repository.ts) the same way Invoice's own
+  // `deletedAt`/`notDeleted` pattern already works elsewhere in this
+  // schema.
+  deletedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users      User[]
+  categories Category[]
+  products   Product[]
+  customers  Customer[]
+  suppliers  Supplier[]
+  invoices      Invoice[]
+  payments      Payment[]
+  expenses      Expense[]
+  expenseCategories ExpenseCategory[]
+  incomes           Income[]
+  incomeCategories  IncomeCategory[]
+  subscriptions CompanySubscription[]
+  notifications Notification[]
+
+  @@index([deletedAt])
+  @@map("companies")
+}
+
+model User {
+  id       String @id @default(cuid())
+  name     String
+  email    String @unique
+  password String
+
+  role      Role     @default(EMPLOYEE)
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id])
+
+  isActive        Boolean   @default(true)
+  emailVerifiedAt DateTime?
+  passwordChangedAt DateTime?
+
+  // Profile Settings (name/email are above; phone + avatar are the rest of
+  // "Profile Settings" per the module spec).
+  phone     String? @db.VarChar(30)
+  avatarUrl String? @db.VarChar(500)
+
+  // Preferences - per-user, distinct from Company's currency/timeZone
+  // (Business Settings, company-wide). Plain String columns rather than
+  // enums: these are UI-only choices the frontend interprets, not values
+  // any query filters or business logic branches on, so a String keeps
+  // adding a new option a data-only change with no migration. Validated
+  // against a fixed allow-list in validators/user.validator.ts instead.
+  // currencyFormat is a display STYLE only ("symbol" vs "code") - it never
+  // overrides *which* currency is shown, only how the company's own
+  // currency (Company.currency) is formatted. See client's
+  // hooks/useCurrencyFormatter.ts, which combines the two.
+  theme          String @default("system") @db.VarChar(20)
+  language       String @default("en") @db.VarChar(10)
+  dateFormat     String @default("DD/MM/YYYY") @db.VarChar(20)
+  currencyFormat String @default("symbol") @db.VarChar(20)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  refreshTokens RefreshToken[]
+
+  emailVerificationTokens EmailVerificationToken[]
+  passwordResetTokens     PasswordResetToken[]
+  invitationTokens        InvitationToken[]
+
+  createdInvoices Invoice[]
+  createdPayments Payment[]
+  createdExpenses Expense[]
+  createdIncomes  Income[]
+
+  notifications Notification[]
+
+  @@index([companyId])
+  @@map("users")
+}
+
+// A single, per-user notification row. Role-based/broadcast events (e.g.
+// "New User Invitation" going to every Business Owner/Manager, "Company
+// Updated" going to everyone in the company) fan out into one row per
+// targeted user at creation time (see notification.service.ts) rather than
+// this table storing a role filter - that keeps isRead/readAt naturally
+// scoped to exactly one user, so marking your copy read can never affect a
+// teammate's copy of the same event, and every list/unread-count query
+// stays a simple `where: { userId }` with no role-resolution needed at read
+// time.
+//
+// Real-time-ready by construction: every notification is created through
+// notification.service.ts's small set of functions (createForUser /
+// createForUsers / createForRoles / createForCompany), all of which return
+// the created row(s) - a future socket/SSE push just needs to emit whatever
+// those functions return, with no change to any of the call sites below
+// that trigger a notification (invoice.service.ts, payment.service.ts,
+// etc.).
+model Notification {
+  id      String           @id @default(cuid())
+  type    NotificationType
+  title   String           @db.VarChar(200)
+  message String           @db.VarChar(1000)
+
+  // Optional deep link the frontend can navigate to on click, e.g.
+  // "/invoices/abc123" - relative, not a full URL, so it works the same in
+  // any environment.
+  link String? @db.VarChar(500)
+
+  isRead Boolean   @default(false)
+  readAt DateTime?
+
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([companyId])
+  @@index([userId, isRead])
+  @@index([userId, createdAt])
+  @@map("notifications")
+}
+model EmailVerificationToken {
+  id String @id @default(cuid())
+
+  email String @db.VarChar(255)
+
+  // crypto.randomBytes(32).toString("hex") is always exactly 64 hex
+  // characters - this column must fit that exactly. A prior migration
+  // shrank this to VarChar(6) for an OTP-style flow that was never
+  // finished; the service layer never switched off hex tokens, so every
+  // insert here would fail (or silently truncate, depending on SQL mode).
+  // @unique restored too: a token is looked up by itself, so it needs to
+  // be unique both for correctness (no ambiguity) and for an indexed O(1)
+  // lookup instead of a table scan.
+  token String @unique @db.VarChar(64)
+
+  expiresAt DateTime
+
+  createdAt DateTime @default(now())
+
+  userId String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([email])
+  @@index([userId])
+
+  @@map("email_verification_tokens")
+}
+model PasswordResetToken {
+  id String @id @default(cuid())
+
+  // crypto.randomBytes(32).toString("hex") - always exactly 64 hex chars,
+  // same convention as EmailVerificationToken.token (see that model's
+  // comment for why this bit us once already - keep this column at 64).
+  token String @unique @db.VarChar(64)
+
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("password_reset_tokens")
+}
+
+model InvitationToken {
+  id String @id @default(cuid())
+
+  // Same convention as the other two token tables: crypto.randomBytes(32)
+  // hex-encoded, always 64 chars, unique for O(1) lookup by token alone.
+  token String @unique @db.VarChar(64)
+
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("invitation_tokens")
+}
+
+model RefreshToken {
+  id    String @id @default(cuid())
+  token String @unique @db.VarChar(512)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Captured at issue time (see auth.service.ts's issueTokenPair) so the
+  // Active Sessions settings screen can show "Chrome on Windows - last
+  // active 2 hours ago" rather than an opaque token id. Best-effort only -
+  // a client can send any User-Agent it likes, so this is a display
+  // convenience, not a security control.
+  userAgent String? @db.VarChar(255)
+  ipAddress String? @db.VarChar(45)
+  lastUsedAt DateTime?
+
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+
+
+model Category {
+  id          String  @id @default(cuid())
+  name        String  @db.VarChar(150)
+  description String? @db.VarChar(500)
+  isActive    Boolean @default(true)
+
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  products Product[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([companyId, name])
+  @@index([companyId])
+  @@map("categories")
+}
+
+model Product {
+  id          String  @id @default(cuid())
+  name        String  @db.VarChar(200)
+  sku         String? @db.VarChar(100)
+  description String? @db.VarChar(1000)
+  imageUrl    String? @db.VarChar(2048)
+
+  price         Decimal  @db.Decimal(12, 2)
+  costPrice     Decimal? @db.Decimal(12, 2)
+  stockQuantity Int      @default(0)
+
+  isActive Boolean @default(true)
+
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  categoryId String
+  
+  category   Category @relation(fields: [categoryId], references: [id])
+
+  invoiceItems InvoiceItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  
+  @@unique([companyId, sku])
+  @@index([companyId])
+  @@index([categoryId])
+  @@map("products")
+}
+
+model Customer {
+  id      String  @id @default(cuid())
+  name    String  @db.VarChar(200)
+  email   String? @db.VarChar(255)
+  phone   String? @db.VarChar(30)
+  address String? @db.VarChar(500)
+  notes   String? @db.VarChar(1000)
+
+  // Max unpaid balance this customer is allowed to carry across open
+  // invoices. Advisory only for now (nothing blocks invoicing past it yet)
+  // - surfaced on Customer Details next to Outstanding Balance so staff can
+  // see at a glance when a customer is over their limit.
+  creditLimit Decimal @default(0) @db.Decimal(12, 2)
+
+  isActive Boolean @default(true)
+
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  invoices Invoice[]
+  payments Payment[]
+  incomes  Income[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId])
+  @@map("customers")
+}
+
+model Supplier {
+  id      String  @id @default(cuid())
+  name    String  @db.VarChar(200)
+  email   String? @db.VarChar(255)
+  phone   String? @db.VarChar(30)
+  address String? @db.VarChar(500)
+  notes   String? @db.VarChar(1000)
+
+  // Amount owed to this supplier as of when they were added to the system
+  // (e.g. carried over from a previous ledger). The starting point for a
+  // real running balance: Supplier Payment (Payment.type = PAID, see
+  // below) reduces it - supplier.service.ts's getSupplierDetails computes
+  // outstandingPayable = openingBalance - sum(completed PAID payments).
+  // Expense rows still don't touch it: they're recorded as already-paid
+  // transactions (amount + paymentMethod at record time), not open
+  // payables.
+  openingBalance Decimal @default(0) @db.Decimal(12, 2)
+
+  isActive Boolean @default(true)
+
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  expenses Expense[]
+  payments Payment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId])
+  @@map("suppliers")
+}
+
+// -----------------------------------------------------------------------------
+// Billing / Invoicing domain (Phases 9-12) - Invoice, Payment, Expense - plus
+// the platform-level Subscription domain (Phase 16-17) that feeds the Super
+// Admin dashboard. All tenant-owned rows carry companyId and are scoped the
+// same way as every other model above (see tenant.middleware.ts).
+// -----------------------------------------------------------------------------
+
+model Invoice {
+  id            String        @id @default(cuid())
+  invoiceNumber String        @db.VarChar(50)
+  status        InvoiceStatus @default(DRAFT)
+
+  issueDate DateTime @default(now())
+  dueDate   DateTime
+
+  subtotal       Decimal @db.Decimal(12, 2)
+  taxAmount      Decimal @default(0) @db.Decimal(12, 2)
+  discountAmount Decimal @default(0) @db.Decimal(12, 2)
+  totalAmount    Decimal @db.Decimal(12, 2)
+
+  // Denormalized running total, kept in sync by payment.service.ts every
+  // time a Payment against this invoice is created/deleted - avoids a
+  // SUM(payments) join on every invoice list/detail read.
+  amountPaid Decimal @default(0) @db.Decimal(12, 2)
+
+  notes String? @db.VarChar(1000)
+
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id])
+
+  createdByUserId String?
+  createdBy       User?   @relation(fields: [createdByUserId], references: [id])
+
+  items    InvoiceItem[]
+  payments Payment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Soft delete - invoices are financial/legal records, so a delete never
+  // removes the row; it just stamps deletedAt and every read (list, byId,
+  // dashboard aggregates, customer stats) filters `deletedAt: null` by
+  // default. See invoice.repository.ts's `notDeleted` helper.
+  deletedAt DateTime?
+
+  @@unique([companyId, invoiceNumber])
+  @@index([companyId])
+  @@index([customerId])
+  @@index([companyId, status])
+  @@index([companyId, deletedAt])
+  @@map("invoices")
+}
+
+model InvoiceItem {
+  id String @id @default(cuid())
+
+  invoiceId String
+  invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  productId String?
+  product   Product? @relation(fields: [productId], references: [id])
+
+  description String  @db.VarChar(300)
+  quantity    Int
+  unitPrice   Decimal @db.Decimal(12, 2)
+  total       Decimal @db.Decimal(12, 2)
+
+  @@index([invoiceId])
+  @@map("invoice_items")
+}
+
+model Payment {
+  id     String        @id @default(cuid())
+  amount Decimal       @db.Decimal(12, 2)
+  method PaymentMethod @default(CASH)
+
+  // RECEIVED (default, from a Customer - the original/only behavior) or
+  // PAID (to a Supplier - see supplierId below). Kept as an explicit field
+  // rather than inferred from which FK is set, so validation/reporting
+  // never has to guess: payment.validator.ts enforces customerId/invoiceId
+  // are only meaningful for RECEIVED and supplierId only for PAID.
+  type PaymentType @default(RECEIVED)
+
+  // Defaults to COMPLETED - every payment recorded before this field
+  // existed, and every RECEIVED payment recorded through the existing
+  // "record payment against an invoice" flow, is immediately-cleared money
+  // by design (see payment.service.ts's recomputeAmountPaid call, which
+  // only fires for COMPLETED). PENDING is opt-in for money that's been
+  // logged but hasn't cleared.
+  status PaymentStatus @default(COMPLETED)
+
+  paymentDate DateTime @default(now())
+  reference   String?  @db.VarChar(150)
+  notes       String?  @db.VarChar(500)
+
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  invoiceId String?
+  invoice   Invoice? @relation(fields: [invoiceId], references: [id])
+
+  customerId String?
+  customer   Customer? @relation(fields: [customerId], references: [id])
+
+  // Supplier Payment - money paid out to a supplier, paying down their
+  // openingBalance (see payment.repository.ts's sumPaymentsForSupplier and
+  // supplier.service.ts's getSupplierDetails, which now computes a real
+  // outstandingPayable from this instead of just echoing openingBalance).
+  // Mutually exclusive with customerId/invoiceId - enforced in
+  // payment.validator.ts, not at the DB level (Prisma/MySQL have no
+  // portable CHECK-constraint-via-schema for "exactly one of A/B set").
+  supplierId String?
+  supplier   Supplier? @relation(fields: [supplierId], references: [id])
+
+  createdByUserId String?
+  createdBy       User?   @relation(fields: [createdByUserId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([companyId])
+  @@index([invoiceId])
+  @@index([supplierId])
+  @@index([companyId, paymentDate])
+  @@index([companyId, type])
+  @@index([companyId, status])
+  @@map("payments")
+}
+
+model ExpenseCategory {
+  id          String  @id @default(cuid())
+  name        String  @db.VarChar(150)
+  description String? @db.VarChar(500)
+  isActive    Boolean @default(true)
+
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  expenses Expense[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([companyId, name])
+  @@index([companyId])
+  @@map("expense_categories")
+}
+
+model Expense {
+  id       String        @id @default(cuid())
+  title    String        @db.VarChar(200)
+  // Free-text label, kept exactly as before for backward compatibility
+  // (every existing row and every existing read of `expense.category`
+  // keeps working untouched). New writes from the updated Expense form
+  // populate this from the chosen ExpenseCategory's name AND set
+  // expenseCategoryId below, so old and new data both display identically
+  // while new rows also get a real FK for filtering/reporting.
+  category String        @db.VarChar(100)
+  amount   Decimal       @db.Decimal(12, 2)
+
+  expenseDate   DateTime      @default(now())
+  paymentMethod PaymentMethod @default(CASH)
+
+  // Cloudinary secure_url for an uploaded receipt image/PDF - same
+  // "upload -> Cloudinary -> store the URL" pattern as Company.logoUrl, via
+  // POST /expenses/:id/receipt (see upload.middleware.ts's uploadReceipt
+  // and expense.service.ts's uploadExpenseReceipt).
+  receiptUrl String? @db.VarChar(2048)
+
+  notes String? @db.VarChar(500)
+
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  supplierId String?
+  supplier   Supplier? @relation(fields: [supplierId], references: [id])
+
+  expenseCategoryId String?
+  expenseCategory   ExpenseCategory? @relation(fields: [expenseCategoryId], references: [id])
+
+  createdByUserId String?
+  createdBy       User?   @relation(fields: [createdByUserId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId])
+  @@index([companyId, expenseDate])
+  @@index([expenseCategoryId])
+  @@map("expenses")
+}
+
+model IncomeCategory {
+  id          String  @id @default(cuid())
+  name        String  @db.VarChar(150)
+  description String? @db.VarChar(500)
+  isActive    Boolean @default(true)
+
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  incomes Income[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([companyId, name])
+  @@index([companyId])
+  @@map("income_categories")
+}
+
+// Other/miscellaneous revenue not raised through the Invoice/Payment flow
+// (e.g. interest, a refund, a grant, a one-off sale) - mirrors Expense's
+// shape exactly (free-text `category` + optional category FK, amount,
+// date, method, notes) but for money coming IN. Revenue collected through
+// customer invoices continues to be tracked via Payment(type: RECEIVED) as
+// before; dashboard.repository.ts's totalRevenue sums both together.
+model Income {
+  id       String  @id @default(cuid())
+  title    String  @db.VarChar(200)
+  category String  @db.VarChar(100)
+  amount   Decimal @db.Decimal(12, 2)
+
+  incomeDate DateTime      @default(now())
+  method     PaymentMethod @default(CASH)
+
+  notes String? @db.VarChar(500)
+
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  // Optional - "other income" isn't always attributable to a customer (e.g.
+  // interest income has none), but when it is (e.g. a misc cash sale to an
+  // existing customer, recorded as Income rather than a full Invoice), it's
+  // useful for reporting. Deliberately not required the way Payment's
+  // customerId is for a RECEIVED payment against an invoice.
+  customerId String?
+  customer   Customer? @relation(fields: [customerId], references: [id])
+
+  incomeCategoryId String?
+  incomeCategory   IncomeCategory? @relation(fields: [incomeCategoryId], references: [id])
+
+  createdByUserId String?
+  createdBy       User?   @relation(fields: [createdByUserId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId])
+  @@index([companyId, incomeDate])
+  @@index([incomeCategoryId])
+  @@map("incomes")
+}
+
+// Platform-level (not tenant-scoped) - managed by SUPER_ADMIN only.
+model Plan {
+  id          String  @id @default(cuid())
+  name        String  @db.VarChar(100)
+  description String? @db.VarChar(500)
+
+  // Both prices live on the same plan so a company can switch billing
+  // cycle without switching plans - the chosen cycle is recorded per
+  // subscription instead (see CompanySubscription.billingCycle below).
+  // Previously this model had a single `price` + `billingCycle` pair,
+  // which meant "Premium, billed yearly" and "Premium, billed monthly" had
+  // to be two separate Plan rows with no relationship between them.
+  monthlyPrice Decimal @db.Decimal(10, 2)
+  yearlyPrice  Decimal @db.Decimal(10, 2)
+
+  // Freeform marketing bullet points for the pricing page (e.g. "Priority
+  // support", "Custom branding") - distinct from the structured, enforced
+  // limits below. A JSON string array (was a single delimited VARCHAR
+  // blob) so order is preserved and no delimiter character needs escaping.
+  features Json?
+
+  // Feature Limits (per the module spec). Null means unlimited - e.g.
+  // Premium's maxUsers is null rather than some large sentinel number.
+  // Enforced by services/planLimit.service.ts at each corresponding
+  // create-flow (users, customers, suppliers, products, categories,
+  // invoices, monthly reports). storageLimitMb/uploadLimitMb/
+  // apiRequestLimit are captured now but not yet enforced anywhere in the
+  // app - there's no file-storage-usage tracking or API rate limiter to
+  // check them against yet; apiRequestLimit in particular is explicitly
+  // "future ready" per the spec.
+  maxUsers          Int?
+  maxCustomers      Int?
+  maxSuppliers      Int?
+  maxProducts       Int?
+  maxCategories     Int?
+  maxInvoices       Int?
+  maxMonthlyReports Int?
+  storageLimitMb    Int?
+  uploadLimitMb     Int?
+  apiRequestLimit   Int?
+
+  isActive Boolean @default(true)
+
+  subscriptions CompanySubscription[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("plans")
+}
+
+model CompanySubscription {
+  id     String             @id @default(cuid())
+  status SubscriptionStatus @default(ACTIVE)
+
+  // Which of the plan's two prices this subscription is actually paying -
+  // see the comment on Plan.monthlyPrice/yearlyPrice above for why this
+  // moved here instead of living on Plan itself.
+  billingCycle BillingCycle @default(MONTHLY)
+
+  startDate DateTime @default(now())
+  endDate   DateTime
+
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  planId String
+  plan   Plan   @relation(fields: [planId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId])
+  @@index([planId])
+  @@index([status])
+  @@map("company_subscriptions")
+}
