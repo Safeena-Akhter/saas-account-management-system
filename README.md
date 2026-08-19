@@ -1,73 +1,175 @@
-# SaaS Account Management System (AMS)
+<div align="center">
 
-A production-oriented, multi-tenant SaaS Account Management System designed to help businesses manage customers, suppliers, products, invoices, expenses, income, payments, subscriptions, users, companies, and business reports from a centralized platform.
+# 📊 AMS — SaaS Account Management System
 
-The system is built with a modern full-stack architecture with tenant isolation, authentication, role-based access control, subscription management, reporting, and a scalable modular structure.
+**A multi-tenant business management platform** — customers, suppliers, products,
+invoices, expenses, income, payments, subscriptions, and reporting, all in one place.
 
----
+![AMS banner](docs/screenshots/banner.png)
 
-# 📌 Project Overview
+[![Node](https://img.shields.io/badge/Node.js-20%2B-339933?logo=node.js&logoColor=white)](#)
+[![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js&logoColor=white)](#)
+[![Express](https://img.shields.io/badge/Express-5-000000?logo=express&logoColor=white)](#)
+[![Prisma](https://img.shields.io/badge/Prisma-6-2D3748?logo=prisma&logoColor=white)](#)
+[![MySQL](https://img.shields.io/badge/MySQL-8-4479A1?logo=mysql&logoColor=white)](#)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)](#)
+[![License](https://img.shields.io/badge/license-Commercial-lightgrey)](#-license)
 
-The SaaS Account Management System (AMS) is a cloud-based, multi-tenant business management platform.
-
-It is designed for small and medium-sized businesses that need a centralized system to manage:
-
-- Customers
-- Suppliers
-- Products
-- Categories
-- Invoices
-- Expenses
-- Income
-- Payments
-- Notifications
-- Users
-- Companies
-- Subscriptions
-- Plans
-- Reports & Analytics
-
-The system supports multiple companies/tenants while maintaining tenant-level data isolation.
-
-The platform also includes Super Admin functionality for managing companies, subscriptions, plans, and platform-level information.
+</div>
 
 ---
 
-# 🎯 Project Objectives
+## 📽️ Demo
 
-The main objectives of the system are to:
 
-1. Centralize business and financial records.
-2. Reduce manual accounting and record-keeping work.
-3. Provide secure multi-tenant business management.
-4. Implement role-based access control.
-5. Provide dashboards for business insights.
-6. Generate business reports and analytics.
-7. Manage customer and supplier information.
-8. Manage invoices, income, expenses, and payments.
-9. Manage subscription plans and limits.
-10. Provide a scalable architecture for future modules.
-11. Provide a clean and responsive web-based interface.
-12. Support future reporting exports, charts, and analytics.
+> 🚧 Demo video coming soon — see [Screenshots](#-screenshots) below in the meantime.
+
 
 ---
 
-# 🏗️ System Architecture
+## 📖 Table of Contents
 
-The project follows a modular full-stack architecture.
+- [Overview](#-overview)
+- [Features](#-features)
+- [Screenshots](#-screenshots)
+- [Tech Stack](#️-tech-stack)
+- [Architecture](#️-architecture)
+- [Project Structure](#-project-structure)
+- [Getting Started](#-getting-started)
+  - [Prerequisites](#prerequisites)
+  - [1. Clone the repo](#1-clone-the-repo)
+  - [2. Backend setup (`server/`)](#2-backend-setup-server)
+  - [3. Frontend setup (`client/`)](#3-frontend-setup-client)
+  - [4. Run both apps](#4-run-both-apps)
+- [Environment Variables](#-environment-variables)
+- [Database](#️-database)
+- [Available Scripts](#-available-scripts)
+- [API Overview](#-api-overview)
+- [Roles & Permissions](#-roles--permissions)
+- [Reports Module](#-reports-module)
+- [Security](#-security)
+- [Deployment](#-deployment)
+- [Roadmap](#️-roadmap)
+- [License](#-license)
+
+---
+
+## 📌 Overview
+
+AMS is a cloud-based, multi-tenant business management platform for small and
+medium-sized businesses. Each business runs as an isolated company/tenant on
+the same platform, with role-based dashboards for owners, managers,
+accountants, and employees — plus a platform-level **Super Admin** area for
+managing companies, subscriptions, and plans across the whole SaaS.
+
+This is a two-app repository — an **Express/TypeScript API** in `server/`
+and a **Next.js/TypeScript frontend** in `client/` — each with its own
+`package.json`, its own `npm install`, and its own dev server. There is no
+root-level install; you run each app from inside its own folder (see
+[Getting Started](#-getting-started)).
+
+---
+
+## ✨ Features
+
+- 🔐 **Auth** — registration, login, JWT access + refresh tokens, email
+  verification, forgot/reset password, invitation-based onboarding
+- 🏢 **Multi-tenant company management** — company profile, company settings,
+  strict tenant data isolation enforced server-side
+- 👥 **User & role management** — Super Admin, Business Owner, Manager,
+  Accountant, Employee, with permission checks on both API and UI
+- 👤 **Customers** & 🚚 **Suppliers** — full CRUD with contact & transaction info
+- 📦 **Products & Categories** — pricing, status, categorization
+- 🧾 **Invoices** — line items, customer association, status, payment tracking
+- 💰 **Expenses** & 💵 **Income** — categorized records tied to reporting
+- 💳 **Payments** — linked to invoices/customers, status tracking
+- 🔔 **Notifications** — account, invitation, subscription & system events
+- 💳 **Subscriptions & Plans** — plan limits, status, renewal/expiry
+  automation (hourly background check)
+- 📊 **Role-aware dashboards** — separate dashboard views for Business Owner,
+  Manager, Accountant, Employee, and Super Admin
+- 📈 **Reports & Analytics** — see the dedicated [Reports Module](#-reports-module)
+  section below
+- 👑 **Super Admin / platform console** — platform companies, platform users,
+  platform revenue, and platform settings, separate from tenant-level data
+- ☁️ Cloudinary-backed file uploads, SMTP email delivery
+
+---
+
+## 🖼️ Screenshots
+
+
+|---|---|
+| Login page | `docs/screenshots/login.png` |
+| Business Owner dashboard | `docs/screenshots/dashboard-business-owner.png` |
+| Super Admin dashboard | `docs/screenshots/dashboard-super-admin.png` |
+| Customers list | `docs/screenshots/customers.png` |
+| Invoice detail | `docs/screenshots/invoice-detail.png` |
+| Reports dashboard | `docs/screenshots/reports-dashboard.png` |
+| A sample report (e.g. Profit & Loss) | `docs/screenshots/report-profit-loss.png` |
+| Subscription / plan management | `docs/screenshots/subscriptions.png` |
+
+Once the files exist at those paths, this renders automatically:
+
+<table>
+<tr>
+<td width="50%"><img src="docs/screenshots/login.png" alt="Login page" /><br/><sub>Login</sub></td>
+<td width="50%"><img src="docs/screenshots/dashboard-business-owner.png" alt="Business Owner dashboard" /><br/><sub>Business Owner dashboard</sub></td>
+</tr>
+<tr>
+<td width="50%"><img src="docs/screenshots/customers.png" alt="Customers list" /><br/><sub>Customers</sub></td>
+<td width="50%"><img src="docs/screenshots/invoice-detail.png" alt="Invoice detail" /><br/><sub>Invoice detail</sub></td>
+</tr>
+<tr>
+<td width="50%"><img src="docs/screenshots/reports-dashboard.png" alt="Reports dashboard" /><br/><sub>Reports dashboard</sub></td>
+<td width="50%"><img src="docs/screenshots/subscriptions.png" alt="Subscriptions" /><br/><sub>Subscriptions & plans</sub></td>
+</tr>
+</table>
+
+> 💡 Send me the images whenever you have them (even a few at a time) and
+> tell me which screen each one is — I'll place them in this table/section
+> and adjust captions, no need to touch the markdown yourself.
+
+---
+
+## 🛠️ Tech Stack
+
+**Frontend** (`client/`)
+- Next.js 16 (App Router, Turbopack dev server) + React 19 + TypeScript
+- Material UI 7, Materialize admin template foundation
+- TanStack Query & TanStack Table, Redux Toolkit
+- NextAuth for session handling
+- ApexCharts / Recharts, React Hook Form + Valibot, Day.js
+
+**Backend** (`server/`)
+- Node.js + Express 5 + TypeScript
+- Prisma ORM 6 + MySQL
+- JWT auth (access + refresh), bcrypt password hashing
+- Nodemailer/SMTP for email, Cloudinary for file storage
+- Zod validation, Helmet, express-rate-limit, Morgan logging
+- ExcelJS & PDFKit (report export), Multer (uploads)
+
+**Tooling**
+- `tsx` for fast TS execution/watch (backend dev, Prisma seeding)
+- ESLint + Prettier (frontend), TypeScript project builds on both sides
+- Git, npm, Prisma CLI, Postman/Thunder Client
+
+---
+
+## 🏗️ Architecture
 
 ```text
                          ┌─────────────────────────┐
                          │        Frontend         │
-                         │       Next.js 16        │
+                         │   Next.js 16 (client/)  │
                          │    React + TypeScript   │
                          └────────────┬────────────┘
                                       │
-                                      │ HTTP / REST API
+                                      │ HTTP / REST — /api/v1
                                       ▼
                          ┌─────────────────────────┐
                          │        Backend          │
-                         │     Node.js + Express   │
+                         │  Express 5 (server/)    │
                          │       TypeScript        │
                          └────────────┬────────────┘
                                       │
@@ -75,1476 +177,317 @@ The project follows a modular full-stack architecture.
                      │                │                │
                      ▼                ▼                ▼
                 ┌─────────┐      ┌──────────┐    ┌───────────┐
-                │ Prisma  │      │ Cloudinary│    │   SMTP    │
-                │   ORM   │      │  Storage  │    │   Email   │
+                │ Prisma  │      │Cloudinary│    │   SMTP    │
+                │   ORM   │      │ Storage  │    │   Email   │
                 └────┬────┘      └──────────┘    └───────────┘
                      │
                      ▼
                 ┌─────────────┐
                 │    MySQL    │
-                │  Database   │
                 └─────────────┘
-````
+```
+
+Backend request flow: `Routes → Controllers → Services → Repositories → Prisma → MySQL`
 
 ---
 
-# 🛠️ Technology Stack
-
-## Frontend
-
-* Next.js 16
-* React
-* TypeScript
-* Material UI
-* Materialize Admin Template foundation
-* React Query
-* Day.js
-* ApexCharts / Recharts where applicable
-* NextAuth
-* REST API integration
-
-## Backend
-
-* Node.js
-* Express.js
-* TypeScript
-* Prisma ORM
-* MySQL
-* JWT Authentication
-* Role-Based Access Control
-* Multi-Tenant Architecture
-* Nodemailer / SMTP
-* Cloudinary
-
-## Development Tools
-
-* Git
-* GitHub
-* VS Code
-* npm
-* Postman / Thunder Client
-* Prisma CLI
-* TypeScript
-
----
-
-# 📁 Project Structure
+## 📁 Project Structure
 
 ```text
 saas-account-management-system/
 │
-├── client/
+├── client/                      # Next.js frontend — own package.json
 │   ├── public/
 │   ├── src/
-│   │   ├── app/
+│   │   ├── app/                 # App Router pages, incl. [lang]/(dashboard)/(private)/*
 │   │   ├── components/
 │   │   ├── data/
-│   │   ├── features/
+│   │   ├── features/            # feature-scoped hooks/types (incl. reports/)
 │   │   ├── hooks/
 │   │   ├── libs/
-│   │   ├── views/
+│   │   ├── views/                # page-level view components
 │   │   └── ...
-│   │
-│   ├── package.json
-│   └── .env.example
+│   ├── .env.example
+│   └── package.json
 │
-├── server/
+├── server/                      # Express API — own package.json
 │   ├── prisma/
 │   │   ├── schema.prisma
-│   │   └── migrations/
-│   │
+│   │   ├── migrations/
+│   │   └── seed.ts
 │   ├── src/
-│   │   ├── config/
-│   │   ├── constants/
+│   │   ├── config/               # env, db, mailer, cloudinary config
+│   │   ├── constants/            # roles.ts, permissions.ts
 │   │   ├── controllers/
-│   │   ├── helpers/
-│   │   ├── interfaces/
 │   │   ├── middlewares/
 │   │   ├── repositories/
 │   │   ├── routes/
 │   │   ├── services/
-│   │   ├── templates/
-│   │   ├── types/
-│   │   ├── utils/
+│   │   ├── templates/            # email templates
+│   │   ├── utils/                # incl. dateRange.ts
 │   │   ├── validators/
-│   │   └── app.ts
-│   │
-│   ├── package.json
-│   └── .env.example
+│   │   ├── app.ts                # Express app + route mounting
+│   │   └── index.ts              # actual process entrypoint (server start)
+│   ├── .env.example
+│   └── package.json
 │
-├── .gitignore
 └── README.md
 ```
 
----
-
-# 🏢 Multi-Tenant Architecture
-
-The application is designed as a multi-tenant SaaS platform.
-
-Each business operates as a separate company/tenant.
-
-```text
-                    SaaS Platform
-                         │
-          ┌──────────────┼──────────────┐
-          │              │              │
-       Company A       Company B      Company C
-          │              │              │
-       Users           Users          Users
-          │              │              │
-       Data A          Data B         Data C
-```
-
-Tenant isolation ensures that company users only access data belonging to their authorized company.
+> Note: `server/src/index.ts` — not `app.ts` — is the real entrypoint. `app.ts`
+> only builds and exports the configured Express app; `index.ts` starts the
+> HTTP listener, verifies the mailer connection on boot, and runs the hourly
+> subscription-expiry check.
 
 ---
 
-# 🔐 Authentication & Authorization
+## 🚀 Getting Started
 
-The system includes authentication and authorization functionality.
+### Prerequisites
 
-Implemented authentication features include:
+- **Node.js 20+** and **npm**
+- A running **MySQL** instance (local or hosted)
+- (Optional) Cloudinary account — for file/image uploads
+- (Optional) SMTP credentials — for verification/reset/invitation emails
 
-* User Registration
-* Login
-* JWT Authentication
-* Refresh Tokens
-* Email Verification
-* Forgot Password
-* Reset Password
-* Invitation-based access
-* Protected routes
-* Session handling
+This repo has **two independent Node projects**. You'll install and run
+`client/` and `server/` separately, each in its own terminal.
 
-Authorization is implemented using role-based permissions.
-
----
-
-# 👥 User & Role Management
-
-The system supports role-based access control.
-
-Different roles have different permissions.
-
-Example roles include:
-
-* Super Admin
-* Business Owner
-* Manager
-* Accountant
-* Other company-level roles
-
-Permissions are checked at the backend and frontend levels.
-
-Example permission:
-
-```text
-reports:view
-```
-
-Users without the required permission should not be able to access protected functionality.
-
----
-
-# 🏢 Company Management
-
-Company-level functionality includes management of:
-
-* Company information
-* Company users
-* Company settings
-* Company subscription
-* Company-level business data
-
-Super Admin functionality can operate at the platform level rather than being restricted to a single company.
-
----
-
-# 📊 Dashboard
-
-The system provides role-aware dashboards.
-
-Dashboard functionality can include:
-
-* Revenue overview
-* Expense overview
-* Income overview
-* Customer statistics
-* Supplier statistics
-* Invoice statistics
-* Payment information
-* Subscription information
-* Business performance indicators
-
-Dashboard content is based on the user's role and permissions.
-
----
-
-# 👤 Customer Management
-
-Customer management allows businesses to maintain centralized customer records.
-
-Planned/implemented functionality includes:
-
-* Customer listing
-* Customer creation
-* Customer editing
-* Customer details
-* Customer contact information
-* Customer transaction information
-* Customer reporting
-
----
-
-# 🚚 Supplier Management
-
-Supplier management provides centralized supplier records.
-
-Features include:
-
-* Supplier listing
-* Supplier creation
-* Supplier editing
-* Supplier details
-* Supplier contact information
-* Supplier-related business records
-
----
-
-# 📦 Product Management
-
-Product management allows businesses to maintain their products/services.
-
-Features include:
-
-* Product creation
-* Product editing
-* Product listing
-* Categories
-* Pricing information
-* Product status
-* Product-related business data
-
----
-
-# 🧾 Invoice Management
-
-Invoice functionality provides centralized invoice management.
-
-The invoice module is designed to support:
-
-* Invoice creation
-* Invoice listing
-* Invoice details
-* Customer association
-* Product association
-* Invoice status
-* Payment tracking
-* Invoice totals
-
-Future enhancements include advanced invoice reporting and export functionality.
-
----
-
-# 💰 Expense Management
-
-Expense management allows businesses to record and manage expenses.
-
-Features include:
-
-* Expense records
-* Expense categories
-* Amount
-* Date
-* Description
-* Business association
-* Reporting integration
-
----
-
-# 💵 Income Management
-
-Income management allows businesses to record incoming business transactions.
-
-Features include:
-
-* Income records
-* Income categories
-* Amount
-* Date
-* Description
-* Business association
-* Reporting integration
-
----
-
-# 💳 Payment Management
-
-The payment module manages payment-related records.
-
-It is designed to support:
-
-* Payment records
-* Payment status
-* Invoice association
-* Customer association
-* Amount
-* Payment date
-
----
-
-# 🔔 Notifications
-
-The system includes notification functionality for communicating important events to users.
-
-Notifications can be used for:
-
-* Account events
-* Invitations
-* Business events
-* Subscription events
-* System notifications
-
----
-
-# 💳 Subscription & Plan Management
-
-The platform supports SaaS subscription functionality.
-
-The system can manage:
-
-* Subscription plans
-* Company subscriptions
-* Plan limits
-* Subscription status
-* Start dates
-* End dates
-* Feature restrictions
-
-Platform-level administrators can manage subscription plans and company subscriptions.
-
----
-
-# 📈 Reports & Analytics
-
-## Phase 1
-
-Reports & Analytics Phase 1 introduces the first production reporting functionality.
-
-Implemented reports:
-
-1. Sales Report
-2. Profit & Loss Report
-3. Outstanding Balance Report
-4. Customer Report
-
-The Reports Dashboard provides centralized access to these reports.
-
----
-
-## Reports Architecture
-
-The reporting module follows the existing backend architecture:
-
-```text
-Controller
-    ↓
-Service
-    ↓
-Repository
-    ↓
-Prisma
-    ↓
-MySQL
-```
-
-Supporting components include:
-
-```text
-Validator
-    ↓
-Controller
-    ↓
-Service
-    ↓
-Repository
-```
-
-This keeps reporting logic separated and maintainable.
-
----
-
-# 📊 Sales Report
-
-The Sales Report provides sales-related business information based on the selected date range.
-
-Users can select a reporting period and view relevant sales information.
-
-Supported reporting periods can include:
-
-* Today
-* This Week
-* This Month
-* This Quarter
-* This Year
-* Custom Date Range
-
----
-
-# 📉 Profit & Loss Report
-
-The Profit & Loss Report provides an overview of business income and expenses.
-
-The report is designed to help businesses understand:
-
-```text
-Profit / Loss = Income - Expenses
-```
-
-The report can be filtered by date range.
-
----
-
-# 💳 Outstanding Balance Report
-
-The Outstanding Balance Report provides information about unpaid or outstanding customer balances.
-
-The report helps businesses identify:
-
-* Outstanding invoices
-* Amounts due
-* Customer balances
-* Payment-related information
-
----
-
-# 👥 Customer Report
-
-The Customer Report provides customer-related business information.
-
-It can be used to analyze customer records and their associated financial activity.
-
----
-
-# 📅 Date Range Filtering
-
-Reports include a reusable date range filter.
-
-The reporting utilities support date-based filtering using Day.js.
-
-Supported date concepts include:
-
-* Day
-* Week
-* ISO Week
-* Month
-* Quarter
-* Year
-* Custom Date Range
-
-The backend contains a centralized date range utility:
-
-```text
-server/src/utils/dateRange.ts
-```
-
-This keeps date calculations consistent across reports.
-
----
-
-# 🛡️ Reports Permissions
-
-Reports are protected using role-based permissions.
-
-The following permission is used:
-
-```text
-reports:view
-```
-
-The permission is available to appropriate business roles such as:
-
-* Business Owner
-* Manager
-* Accountant
-
-The frontend sidebar also checks the permission before displaying the Reports module.
-
----
-
-# 🧭 Reports Navigation
-
-Reports are available through:
-
-```text
-/reports
-```
-
-Individual reports are available through:
-
-```text
-/reports/sales
-/reports/profit-loss
-/reports/outstanding-balance
-/reports/customer
-```
-
----
-
-# 📁 Reports Module Structure
-
-## Backend
-
-```text
-server/src/
-├── utils/
-│   └── dateRange.ts
-│
-├── validators/
-│   └── report.validator.ts
-│
-├── repositories/
-│   └── report.repository.ts
-│
-├── services/
-│   └── report.service.ts
-│
-├── controllers/
-│   └── report.controller.ts
-│
-└── routes/
-    └── report.routes.ts
-```
-
-Reports are mounted under:
-
-```text
-/api/v1/reports
-```
-
----
-
-## Frontend
-
-```text
-client/src/
-├── features/
-│   └── reports/
-│       ├── types.ts
-│       └── useReports.ts
-│
-├── views/
-│   └── reports/
-│       ├── shared/
-│       │   └── DateRangeFilter.tsx
-│       │
-│       ├── SalesReport.tsx
-│       ├── ProfitLossReport.tsx
-│       ├── OutstandingBalanceReport.tsx
-│       ├── CustomerReport.tsx
-│       └── ReportsDashboard.tsx
-│
-└── app/
-    └── [lang]/
-        └── (dashboard)/
-            └── (private)/
-                └── reports/
-                    ├── page.tsx
-                    ├── sales/
-                    │   └── page.tsx
-                    ├── profit-loss/
-                    │   └── page.tsx
-                    ├── outstanding-balance/
-                    │   └── page.tsx
-                    └── customer/
-                        └── page.tsx
-```
-
----
-
-# 🚧 Reports Roadmap
-
-Phase 1 does NOT include every planned report.
-
-The following reports are planned for future phases:
-
-* Invoice Report
-* Expense Report
-* Income Report
-* Payment Report
-* Supplier Report
-* Product Report
-* Tax Report
-* Monthly Summary Report
-
----
-
-# 📤 Export Roadmap
-
-Export functionality is planned for a future phase.
-
-Planned formats:
-
-* PDF
-* Excel
-* CSV
-
-These are intentionally not included in Reports Phase 1.
-
----
-
-# 📊 Analytics Roadmap
-
-Future analytics functionality includes:
-
-* Interactive charts
-* Revenue trends
-* Expense trends
-* Profit trends
-* Customer analytics
-* Product analytics
-* Sales analytics
-* Monthly comparisons
-* Year-over-year comparisons
-* KPI cards
-* Advanced dashboards
-
----
-
-# 🖨️ Print View Roadmap
-
-A dedicated print-friendly report view is planned for a future phase.
-
-Future functionality may include:
-
-* Print reports
-* Print invoices
-* Print summaries
-* Print-friendly layouts
-* PDF generation
-
----
-
-# 🔌 API Structure
-
-The backend follows RESTful API conventions.
-
-Base API:
-
-```text
-/api/v1
-```
-
-Reports:
-
-```text
-/api/v1/reports
-```
-
-The exact report endpoints are defined in:
-
-```text
-server/src/routes/report.routes.ts
-```
-
----
-
-# 🗄️ Database
-
-The project uses:
-
-* MySQL
-* Prisma ORM
-
-Prisma schema:
-
-```text
-server/prisma/schema.prisma
-```
-
-Migrations:
-
-```text
-server/prisma/migrations/
-```
-
-After pulling the project, generate the Prisma client:
-
-```bash
-npx prisma generate
-```
-
-For database migrations:
-
-```bash
-npx prisma migrate dev
-```
-
-For production deployments, use the appropriate production migration command and database configuration.
-
----
-
-# ⚙️ Environment Variables
-
-Environment variables are intentionally excluded from Git.
-
-Create:
-
-```text
-server/.env
-client/.env.local
-```
-
-based on:
-
-```text
-server/.env.example
-client/.env.example
-```
-
----
-
-# 🔐 Environment Variable Security
-
-Never commit:
-
-```text
-.env
-.env.local
-.env.production
-server/.env
-client/.env.local
-```
-
-Never expose private secrets through `NEXT_PUBLIC_*` variables.
-
-Sensitive backend variables may include:
-
-```text
-DATABASE_URL
-JWT_SECRET
-JWT_REFRESH_SECRET
-SMTP_PASS
-CLOUDINARY_API_SECRET
-```
-
-These must remain server-side.
-
----
-
-# 🚀 Local Development
-
-## 1. Clone the repository
+### 1. Clone the repo
 
 ```bash
 git clone <repository-url>
 cd saas-account-management-system
 ```
 
----
-
-# 2. Install frontend dependencies
-
-```bash
-cd client
-npm install
-```
-
----
-
-# 3. Configure frontend environment
-
-Create:
-
-```text
-client/.env.local
-```
-
-using:
-
-```text
-client/.env.example
-```
-
----
-
-# 4. Start frontend
-
-```bash
-npm run dev
-```
-
-The frontend normally runs on:
-
-```text
-http://localhost:3000
-```
-
----
-
-# 5. Install backend dependencies
-
-Open another terminal:
+### 2. Backend setup (`server/`)
 
 ```bash
 cd server
-npm install
+npm install                     # installs deps
+cp .env.example .env            # then fill in the values (see below)
+npm run prisma:generate         # generate the Prisma client
+npm run prisma:migrate          # apply migrations to your database
+npm run prisma:seed             # optional: seed initial data (plans, super admin, etc.)
+npm run dev                     # starts the API with tsx watch
 ```
 
----
+The API runs on **http://localhost:5000** by default (`PORT` in `.env`).
 
-# 6. Configure backend environment
+### 3. Frontend setup (`client/`)
 
-Create:
-
-```text
-server/.env
-```
-
-using:
-
-```text
-server/.env.example
-```
-
----
-
-# 7. Generate Prisma Client
-
-```bash
-npx prisma generate
-```
-
----
-
-# 8. Run database migrations
-
-For development:
-
-```bash
-npx prisma migrate dev
-```
-
----
-
-# 9. Start backend
-
-```bash
-npm run dev
-```
-
-The backend normally runs on:
-
-```text
-http://localhost:5000
-```
-
----
-
-# 🧪 Testing & Validation
-
-Before deployment, validate both applications.
-
-## Frontend TypeScript
+Open a second terminal:
 
 ```bash
 cd client
-npx tsc --noEmit
+npm install                     # installs deps; postinstall auto-builds the icon set
+cp .env.example .env.local      # then fill in the values (see below)
+npm run dev                     # starts Next.js with --turbopack
 ```
 
-## Frontend production build
+The frontend runs on **http://localhost:3000** by default.
 
-```bash
-npm run build
-```
+### 4. Run both apps
 
-## Backend TypeScript
+Keep both terminals running — the frontend talks to the backend over REST at
+`NEXT_PUBLIC_API_URL` (defaults to `http://localhost:5000/api/v1`).
+
+---
+
+## ⚙️ Environment Variables
+
+Never commit `.env`, `.env.local`, or `.env.production`. Copy the `.env.example`
+in each app and fill in real values.
+
+### `server/.env`
+
+| Variable | Purpose |
+|---|---|
+| `NODE_ENV` | `development` \| `production` |
+| `PORT` | API port (default `5000`) |
+| `DATABASE_URL` | MySQL connection string (used by Prisma) |
+| `JWT_ACCESS_SECRET` / `JWT_REFRESH_SECRET` | long random strings, keep secret |
+| `JWT_ACCESS_EXPIRES_IN` / `JWT_REFRESH_EXPIRES_IN` | token lifetimes (e.g. `15m` / `30d`) |
+| `CORS_ORIGIN` | comma-separated allowed frontend origin(s) |
+| `CLOUDINARY_CLOUD_NAME` / `CLOUDINARY_API_KEY` / `CLOUDINARY_API_SECRET` | file uploads |
+| `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASS` / `SMTP_FROM` | outgoing email |
+
+### `client/.env.local`
+
+| Variable | Purpose |
+|---|---|
+| `BASEPATH` | optional app base path |
+| `NEXT_PUBLIC_APP_URL` | public URL of the frontend |
+| `NEXTAUTH_URL` / `NEXTAUTH_BASEPATH` / `NEXTAUTH_SECRET` | NextAuth session config |
+| `API_URL` / `NEXT_PUBLIC_API_URL` | backend base URL, e.g. `http://localhost:5000/api/v1` |
+| `MAPBOX_ACCESS_TOKEN` | Mapbox token, if map features are used |
+
+**Never** expose secret backend values (`DATABASE_URL`, `JWT_*_SECRET`,
+`SMTP_PASS`, `CLOUDINARY_API_SECRET`) through `NEXT_PUBLIC_*` variables.
+
+---
+
+## 🗄️ Database
+
+- **MySQL** via **Prisma ORM**
+- Schema: `server/prisma/schema.prisma`
+- Migrations: `server/prisma/migrations/`
+- Seed script: `server/prisma/seed.ts`
 
 ```bash
 cd server
-npx tsc --noEmit
+npm run prisma:generate    # regenerate the client after a schema change
+npm run prisma:migrate     # create/apply a dev migration
+npm run prisma:studio      # open Prisma Studio (visual DB browser)
+npm run prisma:seed        # run the seed script
 ```
 
-## Backend build
-
-```bash
-npm run build
-```
-
-If Prisma types are stale:
-
-```bash
-npx prisma generate
-```
-
-Then run the checks again.
+For production, use your platform's non-interactive migration command
+(typically `prisma migrate deploy`) rather than `migrate dev`.
 
 ---
 
-# 🧪 Reports Phase 1 Testing
+## 📜 Available Scripts
 
-Test the following:
+### `server/` (`npm run <script>`)
 
-## Sales Report
+| Script | What it does |
+|---|---|
+| `dev` | Run the API with `tsx watch` (hot reload) |
+| `build` | Compile TypeScript (`tsc`) to `dist/` |
+| `start` | Run the compiled server (`node dist/index.js`) |
+| `prisma:generate` | Generate the Prisma client |
+| `prisma:migrate` | Run `prisma migrate dev` |
+| `prisma:studio` | Launch Prisma Studio |
+| `prisma:seed` | Run `prisma/seed.ts` |
 
-* Open `/reports/sales`
-* Select a date range
-* Verify report data
-* Verify unauthorized users cannot access the report
+### `client/` (`npm run <script>`)
 
-## Profit & Loss
-
-* Open `/reports/profit-loss`
-* Select a date range
-* Verify income
-* Verify expenses
-* Verify calculated profit/loss
-
-## Outstanding Balance
-
-* Open `/reports/outstanding-balance`
-* Select a date range
-* Verify outstanding amounts
-* Verify customer/invoice associations
-
-## Customer Report
-
-* Open `/reports/customer`
-* Verify customer data
-* Verify date filtering
-* Verify tenant isolation
+| Script | What it does |
+|---|---|
+| `dev` | Run Next.js dev server with Turbopack |
+| `build` | Production build |
+| `start` | Run the production build |
+| `lint` / `lint:fix` | ESLint check / autofix |
+| `format` | Prettier format `src/**` |
+| `clean` | Remove `.next` |
+| `clear` | Remove `.next` and `node_modules` |
 
 ---
 
-# 🔒 Security Considerations
+## 🔌 API Overview
 
-The system follows several security principles:
+Base URL: `/api/v1`
 
-* JWT authentication
-* Protected API routes
-* Role-based permissions
-* Tenant isolation
-* Server-side authorization
-* Environment-based secrets
-* Password hashing
-* Email verification
-* Refresh token support
-* Input validation
-* Prisma ORM
-* API-level access control
+| Area | Base path |
+|---|---|
+| Auth | `/api/v1/auth` |
+| Companies | `/api/v1/companies` |
+| Users | `/api/v1/users` |
+| Invitations | `/api/v1/invitations` |
+| Categories | `/api/v1/categories` |
+| Products | `/api/v1/products` |
+| Customers | `/api/v1/customers` |
+| Suppliers | `/api/v1/suppliers` |
+| Invoices | `/api/v1/invoices` |
+| Expenses / Expense categories | `/api/v1/expenses`, `/api/v1/expense-categories` |
+| Income / Income categories | `/api/v1/incomes`, `/api/v1/income-categories` |
+| Payments | `/api/v1/payments` |
+| Plans / Subscriptions | `/api/v1/plans`, `/api/v1/subscriptions` |
+| Dashboard | `/api/v1/dashboard` |
+| Reports | `/api/v1/reports` |
+| Notifications | `/api/v1/notifications` |
+| **Platform (Super Admin only)** | `/api/v1/platform/companies`, `/api/v1/platform/users`, `/api/v1/platform/revenue`, `/api/v1/platform/settings` |
+
+All tenant-scoped routes enforce company-level data isolation server-side —
+never rely on the frontend alone to restrict access.
 
 ---
 
-# 🏢 Tenant Isolation
+## 👥 Roles & Permissions
 
-Tenant isolation is a critical requirement.
+| Role | Scope |
+|---|---|
+| **Super Admin** | Platform-wide — companies, subscriptions, plans, platform settings |
+| **Business Owner** | Full tenant access, including user management |
+| **Manager** | Tenant operations, view-only on user management |
+| **Accountant** | Financial modules — invoices, expenses, income, reports |
+| **Employee** | Restricted, day-to-day operational access |
 
-A company user should only be able to access records belonging to their company.
+Permissions are enforced both server-side (route/middleware level) and
+reflected in the frontend (sidebar, page guards) so users never see actions
+they aren't allowed to perform.
 
-For example:
+---
+
+## 📈 Reports Module
+
+Reports live under `/reports` in the app and `/api/v1/reports` in the API,
+with a shared date-range filter (`dayjs`, including ISO week & quarter
+support) via `server/src/utils/dateRange.ts`.
+
+Report types present in this codebase:
+
+- Sales Report
+- Profit & Loss Report
+- Outstanding Balance Report
+- Customer Report
+- Invoice Report
+- Expense Report
+- Income Report
+- Payment Report
+- Supplier Report
+- Product Report
+- Tax Report
+- Monthly Summary Report
+
+Report export is wired up on the backend (`ExcelJS` + `PDFKit`) via a
+dedicated export helper — confirm exact supported formats per report before
+publishing this as a finished feature in your public docs.
+
+---
+
+## 🔒 Security
+
+- JWT access + refresh tokens, bcrypt password hashing
+- Helmet, CORS restricted via `CORS_ORIGIN`, rate limiting
+- Server-side role/permission checks on every protected route
+- Tenant isolation enforced at the repository/query level
+- Environment-based secrets — nothing sensitive committed to Git
+- Email verification, password reset, invitation-based onboarding flows
+
+---
+
+## 📦 Deployment
+
+Recommended split:
 
 ```text
-Company A
- ├── Customer A1
- ├── Invoice A1
- └── Expense A1
-
-Company B
- ├── Customer B1
- ├── Invoice B1
- └── Expense B1
+client/  → Vercel (set the project root to "client")
+server/  → any Node-compatible host (Railway, Render, EC2, etc.)
+database → managed MySQL
 ```
 
-Company A users must not be able to access:
-
-```text
-Customer B1
-Invoice B1
-Expense B1
-```
-
-Tenant filtering must be applied at the backend layer and should never rely only on frontend restrictions.
+- Set `NEXT_PUBLIC_API_URL` on the frontend to your deployed backend's URL —
+  don't hard-code it in source.
+- Set `CORS_ORIGIN` on the backend to your deployed frontend's URL.
+- Configure all secrets through your hosting platform's environment
+  variable settings, never by committing `.env` files.
+- Run `prisma migrate deploy` (not `migrate dev`) as part of your deploy step.
 
 ---
 
-# 👑 Super Admin
+## 🗺️ Roadmap
 
-The platform supports Super Admin-level functionality.
-
-Super Admin functionality is different from company-level functionality.
-
-Examples include:
-
-* Platform company management
-* Company information
-* Company status
-* Subscription management
-* Plan management
-* Platform-level users/companies where permitted
-* Platform dashboard information
-
-Company-level users remain restricted to their tenant.
+- [ ] PDF / Excel / CSV export polish across all report types
+- [ ] Interactive analytics charts (revenue/expense/profit trends, KPIs)
+- [ ] Print-friendly views for invoices and reports
+- [ ] Expanded platform-level analytics for Super Admin
 
 ---
 
-# 📦 Deployment Architecture
-
-The recommended production deployment is:
-
-```text
-                    GitHub
-                       │
-             ┌─────────┴─────────┐
-             │                   │
-             ▼                   ▼
-         Frontend             Backend
-         Vercel               Node Host
-             │                   │
-             │                   │
-             └─────────┬─────────┘
-                       │
-                       ▼
-                     MySQL
-```
-
-Recommended separation:
-
-```text
-client/  → Vercel
-server/  → Node.js-compatible hosting
-database → Managed MySQL
-```
-
----
-
-# ☁️ Vercel Frontend
-
-The Next.js frontend can be deployed using Vercel.
-
-For the monorepo, configure the project root as:
-
-```text
-client
-```
-
-The backend should not be treated as the Next.js application.
-
-Production environment variables should be configured through the deployment platform rather than committed to Git.
-
----
-
-# 🔗 Production API
-
-After deploying the backend, configure the frontend to use the production backend URL.
-
-Example:
-
-```env
-NEXT_PUBLIC_API_URL=https://api.example.com
-```
-
-Do not hard-code production URLs throughout the source code.
-
----
-
-# 🌐 CORS
-
-The production backend must allow requests from the production frontend domain.
-
-Development:
-
-```text
-http://localhost:3000
-```
-
-Production:
-
-```text
-https://your-frontend-domain.com
-```
-
-CORS should be configured using environment variables rather than allowing all origins in production.
-
----
-
-# 📧 Email Configuration
-
-The backend uses SMTP for email-related functionality.
-
-Possible email features include:
-
-* Email verification
-* Password reset
-* Invitations
-* System notifications
-
-SMTP credentials must be stored as environment variables.
-
-Never commit:
-
-```text
-SMTP_PASS
-```
-
-or other SMTP credentials to GitHub.
-
----
-
-# ☁️ Cloudinary
-
-Cloudinary can be used for managed media/file storage.
-
-Credentials should remain in backend environment variables:
-
-```text
-CLOUDINARY_CLOUD_NAME
-CLOUDINARY_API_KEY
-CLOUDINARY_API_SECRET
-```
-
-The API secret must never be exposed to the frontend.
-
----
-
-# 🔄 Git Workflow
-
-Recommended branch structure:
-
-```text
-main
-│
-└── development
-```
-
-Development work should happen on feature/development branches.
-
-Example:
-
-```bash
-git checkout -b feature/reports-phase-1
-```
-
-After testing:
-
-```text
-feature branch
-      ↓
-development
-      ↓
-testing
-      ↓
-main
-```
-
-Production deployments should be associated with stable code on the `main` branch.
-
----
-
-# 📝 Git Commit Convention
-
-Recommended commit style:
-
-```text
-feat: add reports phase 1
-fix: correct outstanding balance calculation
-refactor: improve report repository
-docs: update reports documentation
-chore: update dependencies
-```
-
----
-
-# 🧹 Code Quality
-
-The project follows a modular architecture.
-
-Backend:
-
-```text
-Routes
-   ↓
-Controllers
-   ↓
-Services
-   ↓
-Repositories
-   ↓
-Prisma
-```
-
-Frontend:
-
-```text
-Pages
-   ↓
-Views
-   ↓
-Features / Hooks
-   ↓
-API
-```
-
-Business logic should not be unnecessarily placed inside route handlers or UI components.
-
----
-
-# 📌 Reports Phase 1 Files
-
-## New Backend Files
-
-```text
-server/src/utils/dateRange.ts
-server/src/validators/report.validator.ts
-server/src/repositories/report.repository.ts
-server/src/services/report.service.ts
-server/src/controllers/report.controller.ts
-server/src/routes/report.routes.ts
-```
-
-## New Frontend Files
-
-```text
-client/src/features/reports/types.ts
-client/src/features/reports/useReports.ts
-
-client/src/views/reports/shared/DateRangeFilter.tsx
-client/src/views/reports/SalesReport.tsx
-client/src/views/reports/ProfitLossReport.tsx
-client/src/views/reports/OutstandingBalanceReport.tsx
-client/src/views/reports/CustomerReport.tsx
-client/src/views/reports/ReportsDashboard.tsx
-
-client/src/app/[lang]/(dashboard)/(private)/reports/page.tsx
-client/src/app/[lang]/(dashboard)/(private)/reports/sales/page.tsx
-client/src/app/[lang]/(dashboard)/(private)/reports/profit-loss/page.tsx
-client/src/app/[lang]/(dashboard)/(private)/reports/outstanding-balance/page.tsx
-client/src/app/[lang]/(dashboard)/(private)/reports/customer/page.tsx
-```
-
----
-
-# 📝 Modified Files — Reports Phase 1
-
-```text
-server/src/app.ts
-server/src/constants/roles.ts
-server/src/constants/permissions.ts
-
-client/src/data/navigation/sidebarMenu.ts
-client/src/views/dashboards/accountant/ReportsLinksCard.tsx
-```
-
----
-
-# 📦 Dependencies
-
-Reports Phase 1 does not introduce any new npm dependencies.
-
-The project already uses:
-
-```text
-dayjs
-```
-
-The following Day.js plugins are used:
-
-```text
-dayjs/plugin/isoWeek
-dayjs/plugin/quarterOfYear
-```
-
-These plugins are included within the Day.js package.
-
-No additional `npm install` is required for Reports Phase 1.
-
----
-
-# 🔄 Prisma
-
-If Prisma Client types are stale, run:
-
-```bash
-npx prisma generate
-```
-
-Then perform a TypeScript/build check:
-
-```bash
-npx tsc --noEmit
-```
-
-and:
-
-```bash
-npm run build
-```
-
----
-
-# 🚧 Current Project Status
-
-## Core Platform
-
-| Module              | Status        |
-| ------------------- | ------------- |
-| Authentication      | ✅ Implemented |
-| User Management     | ✅ Implemented |
-| Company Management  | ✅ Implemented |
-| Customer Management | ✅ Implemented |
-| Supplier Management | ✅ Implemented |
-| Product Management  | ✅ Implemented |
-| Categories          | ✅ Implemented |
-| Invoices            | ✅ Implemented |
-| Expenses            | ✅ Implemented |
-| Income              | ✅ Implemented |
-| Payments            | ✅ Implemented |
-| Notifications       | ✅ Implemented |
-| Subscriptions       | ✅ Implemented |
-| Plans               | ✅ Implemented |
-| Dashboards          | ✅ Implemented |
-| Reports Phase 1     | ✅ Implemented |
-
----
-
-# 📊 Reports Status
-
-| Report              | Status       |
-| ------------------- | ------------ |
-| Sales               | ✅ Phase 1    |
-| Profit & Loss       | ✅ Phase 1    |
-| Outstanding Balance | ✅ Phase 1    |
-| Customer            | ✅ Phase 1    |
-| Invoice             | 🚧 Planned   |
-| Expense             | 🚧 Planned   |
-| Income              | 🚧 Planned   |
-| Payment             | 🚧 Planned   |
-| Supplier            | 🚧 Planned   |
-| Product             | 🚧 Planned   |
-| Tax                 | 🚧 Planned   |
-| Monthly Summary     | 🚧 Planned   |
-| PDF Export          | 🚧 Phase 2/3 |
-| Excel Export        | 🚧 Phase 2/3 |
-| CSV Export          | 🚧 Phase 2/3 |
-| Charts              | 🚧 Phase 2/3 |
-| Print View          | 🚧 Planned   |
-
----
-
-# 🗺️ Development Roadmap
-
-## Phase 1 — Core Reports
-
-Completed:
-
-* Sales Report
-* Profit & Loss
-* Outstanding Balance
-* Customer Report
-* Reports Dashboard
-* Date range filtering
-* Reports permission
-* Reports sidebar navigation
-* Reports API
-* Tenant-aware reporting
-
----
-
-## Phase 2 — Additional Reports
-
-Planned:
-
-* Invoice Report
-* Expense Report
-* Income Report
-* Payment Report
-* Supplier Report
-* Product Report
-* Tax Report
-* Monthly Summary
-
----
-
-## Phase 3 — Advanced Analytics
-
-Planned:
-
-* Interactive charts
-* Revenue trends
-* Expense trends
-* Profit trends
-* Customer analytics
-* Product analytics
-* Monthly comparisons
-* KPI dashboards
-* Advanced filtering
-
----
-
-## Phase 4 — Export & Print
-
-Planned:
-
-* PDF export
-* Excel export
-* CSV export
-* Print reports
-* Printable summaries
-
----
-
-# 🧪 Pre-Production Checklist
-
-Before production deployment:
-
-* [ ] Frontend TypeScript passes
-* [ ] Backend TypeScript passes
-* [ ] Frontend production build passes
-* [ ] Backend production build passes
-* [ ] Prisma Client generated
-* [ ] Database migrations verified
-* [ ] Environment variables configured
-* [ ] Secrets removed from repository
-* [ ] CORS configured
-* [ ] Authentication tested
-* [ ] Authorization tested
-* [ ] Tenant isolation tested
-* [ ] Reports tested
-* [ ] SMTP tested
-* [ ] Cloudinary tested
-* [ ] Production API tested
-* [ ] Production frontend tested
-* [ ] Error handling verified
-* [ ] Database backups configured
-
----
-
-# 🔐 Production Security Checklist
-
-Before making the application publicly accessible:
-
-* [ ] Use strong JWT secrets
-* [ ] Use a production database
-* [ ] Never expose database credentials
-* [ ] Never expose SMTP credentials
-* [ ] Never expose Cloudinary API secret
-* [ ] Configure production CORS
-* [ ] Disable development debugging
-* [ ] Use HTTPS
-* [ ] Configure secure cookies where applicable
-* [ ] Validate all incoming requests
-* [ ] Verify tenant isolation
-* [ ] Verify role permissions
-* [ ] Configure database backups
-* [ ] Configure monitoring/logging
-
----
-
-# 📜 License
-
-This project is currently maintained as a private software project.
-
-License terms can be added when the project is prepared for public distribution.
-
----
-
+## 📜 License
+
+This project is currently maintained as a private/commercial software
+project. License terms will be added when the project is prepared for
+public distribution.
