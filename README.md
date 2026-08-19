@@ -98,19 +98,6 @@ root-level install; you run each app from inside its own folder (see
 
 ## 🖼️ Screenshots
 
-
-|---|---|
-| Login page | `docs/screenshots/login.png` |
-| Business Owner dashboard | `docs/screenshots/dashboard-business-owner.png` |
-| Super Admin dashboard | `docs/screenshots/dashboard-super-admin.png` |
-| Customers list | `docs/screenshots/customers.png` |
-| Invoice detail | `docs/screenshots/invoice-detail.png` |
-| Reports dashboard | `docs/screenshots/reports-dashboard.png` |
-| A sample report (e.g. Profit & Loss) | `docs/screenshots/report-profit-loss.png` |
-| Subscription / plan management | `docs/screenshots/subscriptions.png` |
-
-Once the files exist at those paths, this renders automatically:
-
 <table>
 <tr>
 <td width="50%"><img src="docs/screenshots/login.png" alt="Login page" /><br/><sub>Login</sub></td>
@@ -125,10 +112,6 @@ Once the files exist at those paths, this renders automatically:
 <td width="50%"><img src="docs/screenshots/subscriptions.png" alt="Subscriptions" /><br/><sub>Subscriptions & plans</sub></td>
 </tr>
 </table>
-
-> 💡 Send me the images whenever you have them (even a few at a time) and
-> tell me which screen each one is — I'll place them in this table/section
-> and adjust captions, no need to touch the markdown yourself.
 
 ---
 
