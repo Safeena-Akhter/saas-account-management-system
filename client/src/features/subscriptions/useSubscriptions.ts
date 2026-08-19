@@ -7,6 +7,7 @@ import type {
   ChangeMySubscriptionInput,
   CompanySubscription,
   MySubscription,
+  SubscriptionStatus,
   UsageSummary
 } from './types'
 
@@ -114,11 +115,13 @@ export function useCancelMySubscription() {
 // Super Admin - "View All Company Subscriptions" + "Assign Plan".
 // ---------------------------------------------------------------------------
 
-export function useAllSubscriptions() {
+export function useAllSubscriptions(status?: SubscriptionStatus) {
   return useQuery({
-    queryKey: subscriptionQueryKeys.allCompanies,
+    queryKey: [...subscriptionQueryKeys.allCompanies, status ?? 'all'],
     queryFn: async () => {
-      const { data } = await apiClient.get<{ subscriptions: CompanySubscription[] }>('/subscriptions')
+      const { data } = await apiClient.get<{ subscriptions: CompanySubscription[] }>('/subscriptions', {
+        params: status ? { status } : undefined
+      })
 
       return data.subscriptions
     }
@@ -143,7 +146,7 @@ export function useAssignSubscription() {
 export function useUpdateSubscriptionStatus() {
   const queryClient = useQueryClient()
 
-  return useMutation<void, ApiError, { id: string; status: 'ACTIVE' | 'EXPIRED' | 'CANCELLED' }>({
+  return useMutation<void, ApiError, { id: string; status: SubscriptionStatus }>({
     mutationFn: async ({ id, status }) => {
       await apiClient.patch(`/subscriptions/${id}/status`, { status })
     },

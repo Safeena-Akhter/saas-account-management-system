@@ -93,14 +93,19 @@ export type SidebarNode = SidebarLeaf | SidebarGroup
 // Admin side (Plan CRUD + assigning companies to plans) shipped on the
 // backend at the same time, so 'platformPlans' moved out of the Super
 // Admin roadmap list too, replaced by a real 'platformSubscriptions' item
-// alongside it (see the isSuperAdmin branch below) - platformUsers/
-// platformRevenue/platformSettings remain roadmap placeholders since those
-// still have no route/page yet. Company Management shipped the same way
+// alongside it (see the isSuperAdmin branch below) - platformUsers shipped
+// the same way (real cross-company user list/activate/deactivate,
+// permission key "platform:manage") and moved out of the roadmap list too.
+// platformRevenue (MRR/ARR analytics) and platformSettings (platform name/
+// support contact/maintenance mode) shipped last, also gated on
+// "platform:manage" - the SUPER_ADMIN roadmap list is now empty since
+// every Super Admin module has a real route/page. Company Management
+// shipped the same way
 // (real "companies:manage" permission key - SUPER_ADMIN already has it -
 // gating a new /platform/companies page), so 'platformCompanies' moved out
 // of the roadmap list too.
 const ROLE_ROADMAP_MODULES: Record<AppRole, string[]> = {
-  SUPER_ADMIN: ['platformUsers', 'platformRevenue', 'platformSettings'],
+  SUPER_ADMIN: [],
   BUSINESS_OWNER: ['expenses', 'income', 'payments'],
   MANAGER: [],
   ACCOUNTANT: ['expenses', 'income', 'payments'],
@@ -150,7 +155,9 @@ const roadmapItemDefs = (dictionary: Dictionary): Record<string, SidebarLeaf> =>
     key: 'platformUsers',
     label: dictionary['navigation'].users,
     icon: 'ri-group-3-line',
-    comingSoon: true
+    href: '/platform/users',
+    exactMatch: false,
+    activeUrl: '/platform/users'
   },
   platformPlans: {
     type: 'item',
@@ -173,14 +180,18 @@ const roadmapItemDefs = (dictionary: Dictionary): Record<string, SidebarLeaf> =>
     key: 'platformRevenue',
     label: dictionary['navigation'].revenue,
     icon: 'ri-line-chart-line',
-    comingSoon: true
+    href: '/platform/revenue',
+    exactMatch: false,
+    activeUrl: '/platform/revenue'
   },
   platformSettings: {
     type: 'item',
     key: 'platformSettings',
     label: dictionary['navigation'].platformSettings,
     icon: 'ri-shield-keyhole-line',
-    comingSoon: true
+    href: '/platform/settings',
+    exactMatch: false,
+    activeUrl: '/platform/settings'
   }
 })
 
@@ -220,7 +231,9 @@ export const buildSidebarMenu = ({ dictionary, role, permissions }: BuildSidebar
     // in the roadmap list with the modules that still have no route/page.
     const platformItems: SidebarLeaf[] = [
       ...(has('companies:manage') ? [roadmap.platformCompanies] : []),
-      ...(has('platform:manage') ? [roadmap.platformPlans, roadmap.platformSubscriptions] : [])
+      ...(has('platform:manage')
+        ? [roadmap.platformUsers, roadmap.platformPlans, roadmap.platformSubscriptions, roadmap.platformRevenue, roadmap.platformSettings]
+        : [])
     ]
 
     platformItems.push(...roadmapKeysForRole.map(roadmapItem).filter(Boolean))

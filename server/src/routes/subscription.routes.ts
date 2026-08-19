@@ -4,11 +4,12 @@ import * as subscriptionController from "../controllers/subscription.controller"
 import { requireAuth } from "../middlewares/auth.middleware";
 import { requireCompanyScope } from "../middlewares/tenant.middleware";
 import { requireRole } from "../middlewares/rbac.middleware";
-import { validateBody } from "../middlewares/validate.middleware";
+import { validateBody, validateQuery } from "../middlewares/validate.middleware";
 import { SUBSCRIPTION_MODULE_VIEW_ROLES, SUBSCRIPTION_MODULE_WRITE_ROLES } from "../constants/roles";
 import {
   assignSubscriptionSchema,
   changeMySubscriptionSchema,
+  listSubscriptionsQuerySchema,
   updateSubscriptionStatusSchema
 } from "../validators/subscription.validator";
 
@@ -68,7 +69,7 @@ router.post(
 // condition (same reasoning as plan.routes.ts's management block).
 router.use(requireAuth, requireRole("SUPER_ADMIN"));
 
-router.get("/", subscriptionController.list);
+router.get("/", validateQuery(listSubscriptionsQuerySchema), subscriptionController.list);
 router.post("/", validateBody(assignSubscriptionSchema), subscriptionController.assign);
 router.patch("/:id/status", validateBody(updateSubscriptionStatusSchema), subscriptionController.updateStatus);
 

@@ -27,6 +27,9 @@ import dashboardRoutes from "./routes/dashboard.routes";
 import reportRoutes from "./routes/report.routes";
 import notificationRoutes from "./routes/notification.routes";
 import platformCompanyRoutes from "./routes/platformCompany.routes";
+import platformUserRoutes from "./routes/platformUser.routes";
+import platformRevenueRoutes from "./routes/platformRevenue.routes";
+import platformSettingsRoutes from "./routes/platformSettings.routes";
 
 const app = express();
 
@@ -75,6 +78,20 @@ app.use("/api/v1/notifications", notificationRoutes);
 // distinct from /api/v1/companies above (which is tenant-scoped, /me
 // only). SUPER_ADMIN-only, enforced inside platformCompany.routes.ts.
 app.use("/api/v1/platform/companies", platformCompanyRoutes);
+// Platform-level user management - view/activate/deactivate any user in
+// any company. SUPER_ADMIN-only, enforced inside platformUser.routes.ts.
+// Distinct from /api/v1/users above (tenant-scoped, Business Owner/Manager
+// managing their own company's users only).
+app.use("/api/v1/platform/users", platformUserRoutes);
+// Platform-wide revenue analytics (MRR, breakdown by plan/billing cycle,
+// top companies by revenue). SUPER_ADMIN-only, enforced inside
+// platformRevenue.routes.ts. Read-only - no write endpoints, revenue is
+// derived entirely from CompanySubscription + Plan pricing.
+app.use("/api/v1/platform/revenue", platformRevenueRoutes);
+// Platform-wide operational settings (name, support contact, maintenance
+// mode) - a singleton row, distinct from a user's own account Settings.
+// SUPER_ADMIN-only, enforced inside platformSettings.routes.ts.
+app.use("/api/v1/platform/settings", platformSettingsRoutes);
 // ...
 
 // 404 handler - must come after all routes are mounted

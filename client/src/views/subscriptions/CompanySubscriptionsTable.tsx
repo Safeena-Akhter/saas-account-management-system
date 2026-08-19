@@ -43,14 +43,28 @@ type FormValues = {
 
 const emptyForm: FormValues = { companyId: '', planId: '', billingCycle: 'MONTHLY', endDate: '' }
 
-const statusColor: Record<SubscriptionStatus, 'success' | 'warning' | 'default'> = {
+const statusColor: Record<SubscriptionStatus, 'success' | 'warning' | 'default' | 'info' | 'error'> = {
   ACTIVE: 'success',
+  TRIAL: 'info',
   EXPIRED: 'warning',
   CANCELLED: 'default'
 }
 
+const statusFilterOptions: { value: SubscriptionStatus | 'all'; label: string }[] = [
+  { value: 'all', label: 'All statuses' },
+  { value: 'ACTIVE', label: 'Active' },
+  { value: 'TRIAL', label: 'Trial' },
+  { value: 'EXPIRED', label: 'Expired' },
+  { value: 'CANCELLED', label: 'Cancelled' }
+]
+
 const CompanySubscriptionsTable = () => {
-  const { data: subscriptions, isLoading, isError } = useAllSubscriptions()
+  const [statusFilter, setStatusFilter] = useState<SubscriptionStatus | 'all'>('all')
+
+  const { data: subscriptions, isLoading, isError } = useAllSubscriptions(
+    statusFilter === 'all' ? undefined : statusFilter
+  )
+
   const { data: companies } = useCompaniesDirectory()
   const { data: plans } = useActivePlans()
 
@@ -126,9 +140,25 @@ const CompanySubscriptionsTable = () => {
         title='Company Subscriptions'
         subheader='Every company currently on the platform and the plan they are assigned to'
         action={
-          <Button variant='contained' startIcon={<i className='ri-add-line' />} onClick={openAssign}>
-            Assign Plan
-          </Button>
+          <div className='flex items-center gap-4'>
+            <TextField
+              select
+              size='small'
+              label='Status'
+              value={statusFilter}
+              onChange={e => setStatusFilter(e.target.value as SubscriptionStatus | 'all')}
+              sx={{ minWidth: 160 }}
+            >
+              {statusFilterOptions.map(option => (
+                <MenuItem key={option.value} value={option.value}>
+                  {option.label}
+                </MenuItem>
+              ))}
+            </TextField>
+            <Button variant='contained' startIcon={<i className='ri-add-line' />} onClick={openAssign}>
+              Assign Plan
+            </Button>
+          </div>
         }
       />
 
@@ -146,8 +176,10 @@ const CompanySubscriptionsTable = () => {
       {subscriptions.length === 0 ? (
         <div className='text-center p-12'>
           <i className='ri-vip-crown-line text-[48px] text-textSecondary mbe-2' />
-          <Typography variant='h6'>No subscriptions yet</Typography>
-          <Typography color='text.secondary'>Assign a plan to a company to get started.</Typography>
+          <Typography variant='h6'>{statusFilter === 'all' ? 'No subscriptions yet' : 'No subscriptions match this filter'}</Typography>
+          <Typography color='text.secondary'>
+            {statusFilter === 'all' ? 'Assign a plan to a company to get started.' : 'Try a different status filter.'}
+          </Typography>
         </div>
       ) : (
         <TableContainer>

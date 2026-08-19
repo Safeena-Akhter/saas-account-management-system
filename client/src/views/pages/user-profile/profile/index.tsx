@@ -8,7 +8,6 @@ import type { ProfileTabType } from '@/types/pages/profileTypes'
 import AboutOverview from './AboutOverview'
 import ActivityTimeline from './ActivityTimeline'
 import ConnectionsTeams from './ConnectionsTeams'
-import ProjectsTable from './ProjectsTables'
 
 const ProfileTab = ({ data }: { data?: ProfileTabType }) => {
   return (
@@ -23,7 +22,6 @@ const ProfileTab = ({ data }: { data?: ProfileTabType }) => {
           </Grid>
           <ConnectionsTeams connections={data?.connections} teamsTech={data?.teamsTech} />
           <Grid size={{ xs: 12 }}>
-            <ProjectsTable projectTable={data?.projectTable} />
           </Grid>
         </Grid>
       </Grid>

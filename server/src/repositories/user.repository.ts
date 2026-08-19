@@ -224,11 +224,11 @@ export function activateInvitedUser(userId: string, hashedPassword: string) {
 type UpdateProfileData = Partial<{ name: string; phone: string }>;
 
 export function updateSelfProfile(userId: string, data: UpdateProfileData) {
-  return prisma.user.update({ where: { id: userId }, data });
+  return prisma.user.update({ where: { id: userId }, data, include: { company: { select: { id: true, name: true, logoUrl: true, currency: true } } } });
 }
 
 export function updateAvatar(userId: string, avatarUrl: string) {
-  return prisma.user.update({ where: { id: userId }, data: { avatarUrl } });
+  return prisma.user.update({ where: { id: userId }, data: { avatarUrl }, include: { company: { select: { id: true, name: true, logoUrl: true, currency: true } } } });
 }
 
 type UpdatePreferencesData = Partial<{
@@ -239,5 +239,5 @@ type UpdatePreferencesData = Partial<{
 }>;
 
 export function updatePreferences(userId: string, data: UpdatePreferencesData) {
-  return prisma.user.update({ where: { id: userId }, data });
+  return prisma.user.update({ where: { id: userId }, data, include: { company: { select: { id: true, name: true, logoUrl: true, currency: true } } } });
 }

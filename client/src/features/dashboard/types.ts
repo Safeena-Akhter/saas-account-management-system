@@ -96,11 +96,22 @@ export type EmployeeDashboard = {
 export type SuperAdminDashboard = {
   stats: {
     companies: number
+    activeCompanies: number
     suspendedCompanies: number
     platformUsers: number
+    activePlatformUsers: number
     activePlans: number
+    trialSubscriptions: number
     expiredPlans: number
+    cancelledSubscriptions: number
     platformRevenue: number
+    totalCustomers: number
+    totalSuppliers: number
+    totalProducts: number
+    totalInvoices: number
+    totalPayments: number
+    totalExpenses: number
+    totalIncome: number
   }
 }
 

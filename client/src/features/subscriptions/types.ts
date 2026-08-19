@@ -5,7 +5,7 @@
 
 import type { Plan } from '@/features/plans/types'
 
-export type SubscriptionStatus = 'ACTIVE' | 'EXPIRED' | 'CANCELLED'
+export type SubscriptionStatus = 'ACTIVE' | 'TRIAL' | 'EXPIRED' | 'CANCELLED'
 export type BillingCycle = 'MONTHLY' | 'YEARLY'
 
 export type CompanySubscription = {
@@ -38,6 +38,7 @@ export type LimitedResource = 'users' | 'customers' | 'suppliers' | 'products' |
 export type UsageSummary = {
   subscription: CompanySubscription
   usage: Record<LimitedResource, UsageEntry>
+
   // Captured on the plan but not yet enforced anywhere in the app - see
   // planLimit.service.ts's top-of-file comment on the server.
   unenforced: {

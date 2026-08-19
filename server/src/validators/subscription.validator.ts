@@ -13,7 +13,14 @@ export const assignSubscriptionSchema = z.object({
 });
 
 export const updateSubscriptionStatusSchema = z.object({
-  status: z.enum(["ACTIVE", "EXPIRED", "CANCELLED"])
+  status: z.enum(["ACTIVE", "TRIAL", "EXPIRED", "CANCELLED"])
+});
+
+// GET /subscriptions?status= - Super Admin platform subscription list
+// filter (spec: Active / Trial / Expired / Cancelled). Omitting the param
+// entirely returns every subscription, same as before this filter existed.
+export const listSubscriptionsQuerySchema = z.object({
+  status: z.enum(["ACTIVE", "TRIAL", "EXPIRED", "CANCELLED"]).optional()
 });
 
 // Business Owner self-service: switch their own company to a different
@@ -32,3 +39,4 @@ export const changeMySubscriptionSchema = z.object({
 export type AssignSubscriptionInput = z.infer<typeof assignSubscriptionSchema>;
 export type UpdateSubscriptionStatusInput = z.infer<typeof updateSubscriptionStatusSchema>;
 export type ChangeMySubscriptionInput = z.infer<typeof changeMySubscriptionSchema>;
+export type ListSubscriptionsQuery = z.infer<typeof listSubscriptionsQuerySchema>;

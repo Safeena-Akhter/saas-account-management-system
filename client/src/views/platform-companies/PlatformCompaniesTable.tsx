@@ -59,8 +59,9 @@ import {
 import type { CompanyListItem, ListCompaniesParams } from '@/features/platformCompanies/types'
 import { useActivePlans } from '@/features/plans/usePlans'
 
-const subscriptionStatusColor: Record<string, 'success' | 'warning' | 'default'> = {
+const subscriptionStatusColor: Record<string, 'success' | 'warning' | 'default' | 'info'> = {
   ACTIVE: 'success',
+  TRIAL: 'info',
   EXPIRED: 'warning',
   CANCELLED: 'default'
 }
@@ -258,11 +259,15 @@ const PlatformCompaniesTable = () => {
               </TableCell>
               <TableCell>Plan</TableCell>
               <TableCell>Subscription</TableCell>
+              <TableCell>Owner</TableCell>
               <TableCell sortDirection={sortBy === 'users' ? sortOrder : false}>
                 <TableSortLabel active={sortBy === 'users'} direction={sortBy === 'users' ? sortOrder : 'asc'} onClick={() => handleSort('users')}>
                   Users
                 </TableSortLabel>
               </TableCell>
+              <TableCell>Customers</TableCell>
+              <TableCell>Products</TableCell>
+              <TableCell>Invoices</TableCell>
               <TableCell>Status</TableCell>
               <TableCell sortDirection={sortBy === 'createdAt' ? sortOrder : false}>
                 <TableSortLabel
@@ -315,7 +320,24 @@ const PlatformCompaniesTable = () => {
                       <Chip size='small' label='None' variant='outlined' />
                     )}
                   </TableCell>
+                  <TableCell>
+                    {company.owner ? (
+                      <div>
+                        <Typography variant='body2' className='font-medium'>
+                          {company.owner.name}
+                        </Typography>
+                        <Typography variant='caption' color='text.secondary' className='block'>
+                          {company.owner.email}
+                        </Typography>
+                      </div>
+                    ) : (
+                      '—'
+                    )}
+                  </TableCell>
                   <TableCell>{company._count.users}</TableCell>
+                  <TableCell>{company._count.customers}</TableCell>
+                  <TableCell>{company._count.products}</TableCell>
+                  <TableCell>{company._count.invoices}</TableCell>
                   <TableCell>
                     <Chip
                       size='small'
@@ -338,7 +360,7 @@ const PlatformCompaniesTable = () => {
             })}
             {companies.length === 0 && (
               <TableRow>
-                <TableCell colSpan={7} align='center'>
+                <TableCell colSpan={11} align='center'>
                   <Typography color='text.secondary' className='p-6'>
                     {search || statusFilter !== 'all' || planFilter !== 'all'
                       ? 'No companies match your filters.'

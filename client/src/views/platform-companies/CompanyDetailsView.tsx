@@ -50,8 +50,9 @@ type Props = {
   companyId: string
 }
 
-const subscriptionStatusColor: Record<string, 'success' | 'warning' | 'default'> = {
+const subscriptionStatusColor: Record<string, 'success' | 'warning' | 'default' | 'info'> = {
   ACTIVE: 'success',
+  TRIAL: 'info',
   EXPIRED: 'warning',
   CANCELLED: 'default'
 }
@@ -148,7 +149,7 @@ const CompanyDetailsView = ({ companyId }: Props) => {
     return <Alert severity='error'>Couldn&apos;t load this company. Please refresh and try again.</Alert>
   }
 
-  const { company, subscription, stats } = data
+  const { company, owner, subscription, stats } = data
 
   return (
     <Grid container spacing={6}>
@@ -233,6 +234,35 @@ const CompanyDetailsView = ({ companyId }: Props) => {
                 Delete
               </Button>
             </div>
+          </CardContent>
+        </Card>
+
+        <Card className='mbs-6'>
+          <CardHeader title='Owner' />
+          <CardContent>
+            {owner ? (
+              <div className='flex flex-col gap-2'>
+                <div className='flex justify-between'>
+                  <Typography color='text.secondary'>Name</Typography>
+                  <Typography className='font-medium'>{owner.name}</Typography>
+                </div>
+                <div className='flex justify-between'>
+                  <Typography color='text.secondary'>Email</Typography>
+                  <Typography className='font-medium'>{owner.email}</Typography>
+                </div>
+                <div className='flex justify-between items-center'>
+                  <Typography color='text.secondary'>Status</Typography>
+                  <Chip
+                    size='small'
+                    label={owner.isActive ? 'Active' : 'Suspended'}
+                    color={owner.isActive ? 'success' : 'error'}
+                    variant='tonal'
+                  />
+                </div>
+              </div>
+            ) : (
+              <Typography color='text.secondary'>No owner found for this company.</Typography>
+            )}
           </CardContent>
         </Card>
 

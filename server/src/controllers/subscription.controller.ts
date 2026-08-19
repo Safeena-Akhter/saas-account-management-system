@@ -1,10 +1,12 @@
 import type { NextFunction, Request, Response } from "express";
 
 import * as subscriptionService from "../services/subscription.service";
+import type { ListSubscriptionsQuery } from "../validators/subscription.validator";
 
-export async function list(_req: Request, res: Response, next: NextFunction) {
+export async function list(req: Request, res: Response, next: NextFunction) {
   try {
-    const subscriptions = await subscriptionService.listSubscriptions();
+    const query = req.validatedQuery as ListSubscriptionsQuery;
+    const subscriptions = await subscriptionService.listSubscriptions(query.status);
 
     res.status(200).json({ subscriptions });
   } catch (err) {

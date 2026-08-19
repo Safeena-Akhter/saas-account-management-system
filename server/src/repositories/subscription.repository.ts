@@ -6,8 +6,9 @@ const includeDefault = {
   plan: true
 };
 
-export function findAllSubscriptions() {
+export function findAllSubscriptions(status?: "ACTIVE" | "TRIAL" | "EXPIRED" | "CANCELLED") {
   return prisma.companySubscription.findMany({
+    where: status ? { status } : undefined,
     include: includeDefault,
     orderBy: { createdAt: "desc" }
   });
@@ -34,14 +35,10 @@ export function createSubscription(data: AssignSubscriptionInput) {
   });
 }
 
-export function updateStatus(id: string, status: "ACTIVE" | "EXPIRED" | "CANCELLED") {
+export function updateStatus(id: string, status: "ACTIVE" | "TRIAL" | "EXPIRED" | "CANCELLED") {
   return prisma.companySubscription.updateMany({ where: { id }, data: { status } });
 }
 
-// Business Owner's "Subscription History" screen - every subscription
-// (active, expired, cancelled) the company has ever had, newest first.
-// Unlike findAllSubscriptions() above (every company, Super Admin only),
-// this is scoped to one companyId.
 export function findHistoryByCompany(companyId: string) {
   return prisma.companySubscription.findMany({
     where: { companyId },
@@ -50,11 +47,6 @@ export function findHistoryByCompany(companyId: string) {
   });
 }
 
-// Powers the expiry cron in index.ts: every ACTIVE subscription whose
-// endDate has already passed gets flipped to EXPIRED in one bulk update,
-// rather than the app relying on a read-time check every time a
-// subscription is fetched (which would leave the `status` column lying
-// about companies nobody happened to look up recently).
 export function expireOverdue() {
   return prisma.companySubscription.updateMany({
     where: { status: "ACTIVE", endDate: { lt: new Date() } },
@@ -62,9 +54,6 @@ export function expireOverdue() {
   });
 }
 
-// The other half of the expiry cron: ACTIVE subscriptions expiring within
-// the next `withinDays` days, so a "Renew before it expires" notification
-// can go out ahead of time instead of only after the fact.
 export function findExpiringWithin(withinDays: number) {
   const now = new Date();
   const cutoff = new Date(now.getTime() + withinDays * 24 * 60 * 60 * 1000);
@@ -75,17 +64,29 @@ export function findExpiringWithin(withinDays: number) {
   });
 }
 
-export function countByStatus(status: "ACTIVE" | "EXPIRED" | "CANCELLED") {
+export function countByStatus(status: "ACTIVE" | "TRIAL" | "EXPIRED" | "CANCELLED") {
   return prisma.companySubscription.count({ where: { status } });
 }
 
-// Simple MRR-style platform revenue: sum of the plan price for every
-// currently ACTIVE subscription. A real invoicing/billing-run history for
-// the platform itself is a separate, larger feature - this is the
-// straightforward number "Active Plans x their price" gives today.
-export function activeRevenue() {
-  return prisma.companySubscription.findMany({
+export async function activeRevenue() {
+  const subscriptions = await prisma.companySubscription.findMany({
     where: { status: "ACTIVE" },
-    include: { plan: { select: { price: true } } }
-  });
+    include: {
+      plan: {
+        select: {
+          monthlyPrice: true,
+          yearlyPrice: true
+        }
+      }
+    }
+  })
+
+  return subscriptions.reduce((total, subscription) => {
+    const price =
+      subscription.billingCycle === 'YEARLY'
+        ? subscription.plan.yearlyPrice
+        : subscription.plan.monthlyPrice
+
+    return total + Number(price)
+  }, 0)
 }

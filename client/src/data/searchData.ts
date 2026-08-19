@@ -11,36 +11,36 @@ type SearchData = {
 const data: SearchData[] = [
   {
     id: '1',
-    name: 'CRM',
-    url: '/dashboards/crm',
+    name: 'Super Admin Dashboard',
+    url: '/dashboards/super-admin',
     icon: 'ri-pie-chart-2-line',
     section: 'Dashboards'
   },
   {
     id: '2',
-    name: 'Analytics Dashboard',
-    url: '/dashboards/analytics',
+    name: 'Business Owner Dashboard',
+    url: '/dashboards/business-owner',
     icon: 'ri-bar-chart-line',
     section: 'Dashboards'
   },
   {
     id: '3',
-    name: 'eCommerce Dashboard',
-    url: '/dashboards/ecommerce',
+    name: 'Accountant Dashboard',
+    url: '/dashboards/accountant',
     icon: 'ri-shopping-bag-3-line',
     section: 'Dashboards'
   },
   {
     id: '4',
-    name: 'Academy Dashboard',
-    url: '/dashboards/academy',
+    name: 'Manager Dashboard',
+    url: '/dashboards/manager',
     icon: 'ri-book-open-line',
     section: 'Dashboards'
   },
   {
     id: '5',
-    name: 'Logistics Dashboard',
-    url: '/dashboards/logistics',
+    name: 'Employee Dashboard',
+    url: '/dashboards/employee',
     icon: 'ri-truck-line',
     section: 'Dashboards'
   },

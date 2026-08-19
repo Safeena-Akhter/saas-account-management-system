@@ -11,11 +11,24 @@ import { AppError } from "../utils/AppError";
 import type { UpdateCompanyProfileInput } from "../validators/company.validator";
 import type { ListPlatformCompaniesQuery, ListPlatformCompanyUsersQuery } from "../validators/platformCompany.validator";
 
+// Flattens the `users` array (which only ever holds the one owner, per
+// OWNER_SELECT's `take: 1` in platformCompany.repository.ts) into a single
+// `owner` field, and drops the array - the frontend company list/detail
+// screens want "the owner", not a one-item array to unwrap themselves in
+// every consumer.
+function withOwner<T extends { users: { id: string; name: string; email: string; isActive: boolean }[] }>(
+  company: T
+) {
+  const { users, ...rest } = company;
+
+  return { ...rest, owner: users[0] ?? null };
+}
+
 export async function listCompanies(query: ListPlatformCompaniesQuery) {
   const { companies, total } = await findManyForAdmin(query);
 
   return {
-    companies,
+    companies: companies.map(withOwner),
     pagination: {
       page: query.page,
       pageSize: query.pageSize,
@@ -35,6 +48,10 @@ const EXPIRING_SOON_DAYS = 7;
 function renewalStatus(subscription: { status: string; endDate: Date } | null) {
   if (!subscription) {
     return "No active subscription";
+  }
+
+  if (subscription.status === "TRIAL") {
+    return "Trial";
   }
 
   if (subscription.status !== "ACTIVE") {
@@ -63,6 +80,7 @@ export async function getCompanyDetails(companyId: string) {
 
   const [stats] = await Promise.all([getCompanyStats(companyId)]);
   const subscription = company.subscriptions[0] ?? null;
+  const owner = company.users[0] ?? null;
 
   return {
     company: {
@@ -79,6 +97,7 @@ export async function getCompanyDetails(companyId: string) {
       createdAt: company.createdAt,
       updatedAt: company.updatedAt
     },
+    owner,
     subscription: subscription
       ? {
           planId: subscription.plan.id,

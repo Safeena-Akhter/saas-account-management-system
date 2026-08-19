@@ -201,24 +201,63 @@ export async function getEmployeeDashboard(companyId: string) {
 }
 
 export async function getSuperAdminDashboard() {
-  const [companies, suspendedCompanies, platformUsers, activePlans, expiredPlans, platformRevenue] =
-    await Promise.all([
-      dash.countCompanies(),
-      dash.countSuspendedCompanies(),
-      dash.countPlatformUsers(),
-      dash.countSubscriptionsByStatus("ACTIVE"),
-      dash.countSubscriptionsByStatus("EXPIRED"),
-      dash.platformRevenue()
-    ]);
+  const [
+    companies,
+    activeCompanies,
+    suspendedCompanies,
+    platformUsers,
+    activePlatformUsers,
+    activePlans,
+    trialSubscriptions,
+    expiredPlans,
+    cancelledSubscriptions,
+    platformRevenue,
+    totalCustomers,
+    totalSuppliers,
+    totalProducts,
+    totalInvoices,
+    totalPayments,
+    totalExpenses,
+    totalIncome
+  ] = await Promise.all([
+    dash.countCompanies(),
+    dash.countActiveCompanies(),
+    dash.countSuspendedCompanies(),
+    dash.countPlatformUsers(),
+    dash.countActivePlatformUsers(),
+    dash.countSubscriptionsByStatus("ACTIVE"),
+    dash.countSubscriptionsByStatus("TRIAL"),
+    dash.countSubscriptionsByStatus("EXPIRED"),
+    dash.countSubscriptionsByStatus("CANCELLED"),
+    dash.platformRevenue(),
+    dash.countAllCustomers(),
+    dash.countAllSuppliers(),
+    dash.countAllProducts(),
+    dash.countAllInvoices(),
+    dash.sumAllPayments(),
+    dash.sumAllExpenses(),
+    dash.sumAllIncome()
+  ]);
 
   return {
     stats: {
       companies,
+      activeCompanies,
       suspendedCompanies,
       platformUsers,
+      activePlatformUsers,
       activePlans,
+      trialSubscriptions,
       expiredPlans,
-      platformRevenue
+      cancelledSubscriptions,
+      platformRevenue,
+      totalCustomers,
+      totalSuppliers,
+      totalProducts,
+      totalInvoices,
+      totalPayments,
+      totalExpenses,
+      totalIncome
     }
   };
 }

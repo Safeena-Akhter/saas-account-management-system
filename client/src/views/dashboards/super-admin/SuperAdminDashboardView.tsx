@@ -22,7 +22,7 @@ const SuperAdminDashboardView = ({ userName }: Props) => {
   const { data, isLoading, isError } = useSuperAdminDashboard()
 
   if (isLoading) {
-    return <DashboardSkeleton statCount={5} chartCount={0} />
+    return <DashboardSkeleton statCount={16} chartCount={0} />
   }
 
   if (isError || !data) {
@@ -35,13 +35,146 @@ const SuperAdminDashboardView = ({ userName }: Props) => {
     <Grid container spacing={6}>
       <WelcomeHeaderCard userName={userName} roleLabel='Super Admin' subtitle="Here's how the platform is doing across every company." />
 
-      <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-        <CardStatVertical title='Companies' stats={String(stats.companies)} avatarIcon='ri-building-line' avatarColor='primary' avatarSkin='light' chipColor='secondary' chipText={`${stats.suspendedCompanies} suspended`} />
+      {/* Companies */}
+      <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+        <CardStatVertical
+          title='Total Companies'
+          stats={String(stats.companies)}
+          avatarIcon='ri-building-line'
+          avatarColor='primary'
+          avatarSkin='light'
+          chipColor='secondary'
+          chipText='All companies'
+        />
       </Grid>
-      <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-        <CardStatVertical title='Users' stats={String(stats.platformUsers)} avatarIcon='ri-group-line' avatarColor='secondary' avatarSkin='light' chipColor='secondary' chipText='Across all companies' />
+      <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+        <CardStatVertical
+          title='Active Companies'
+          stats={String(stats.activeCompanies)}
+          avatarIcon='ri-checkbox-circle-line'
+          avatarColor='success'
+          avatarSkin='light'
+          chipColor='secondary'
+          chipText='Currently active'
+        />
       </Grid>
-      <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+      <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+        <CardStatVertical
+          title='Suspended Companies'
+          stats={String(stats.suspendedCompanies)}
+          avatarIcon='ri-forbid-line'
+          avatarColor='error'
+          avatarSkin='light'
+          chipColor='secondary'
+          chipText='Currently suspended'
+        />
+      </Grid>
+
+      {/* Users */}
+      <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+        <CardStatVertical
+          title='Total Users'
+          stats={String(stats.platformUsers)}
+          avatarIcon='ri-group-line'
+          avatarColor='secondary'
+          avatarSkin='light'
+          chipColor='secondary'
+          chipText='Across all companies'
+        />
+      </Grid>
+      <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+        <CardStatVertical
+          title='Active Users'
+          stats={String(stats.activePlatformUsers)}
+          avatarIcon='ri-user-follow-line'
+          avatarColor='success'
+          avatarSkin='light'
+          chipColor='secondary'
+          chipText='Currently active'
+        />
+      </Grid>
+
+      {/* Business data across the platform */}
+      <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+        <CardStatVertical
+          title='Total Customers'
+          stats={String(stats.totalCustomers)}
+          avatarIcon='ri-user-star-line'
+          avatarColor='info'
+          avatarSkin='light'
+          chipColor='secondary'
+          chipText='Across all companies'
+        />
+      </Grid>
+      <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+        <CardStatVertical
+          title='Total Suppliers'
+          stats={String(stats.totalSuppliers)}
+          avatarIcon='ri-truck-line'
+          avatarColor='info'
+          avatarSkin='light'
+          chipColor='secondary'
+          chipText='Across all companies'
+        />
+      </Grid>
+      <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+        <CardStatVertical
+          title='Total Products'
+          stats={String(stats.totalProducts)}
+          avatarIcon='ri-shopping-bag-3-line'
+          avatarColor='info'
+          avatarSkin='light'
+          chipColor='secondary'
+          chipText='Across all companies'
+        />
+      </Grid>
+      <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+        <CardStatVertical
+          title='Total Invoices'
+          stats={String(stats.totalInvoices)}
+          avatarIcon='ri-file-list-3-line'
+          avatarColor='info'
+          avatarSkin='light'
+          chipColor='secondary'
+          chipText='Across all companies'
+        />
+      </Grid>
+
+      {/* Money */}
+      <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+        <CardStatVertical
+          title='Total Payments'
+          stats={currency(stats.totalPayments)}
+          avatarIcon='ri-bank-card-line'
+          avatarColor='success'
+          avatarSkin='light'
+          chipColor='secondary'
+          chipText='Completed payments'
+        />
+      </Grid>
+      <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+        <CardStatVertical
+          title='Total Expenses'
+          stats={currency(stats.totalExpenses)}
+          avatarIcon='ri-wallet-3-line'
+          avatarColor='error'
+          avatarSkin='light'
+          chipColor='secondary'
+          chipText='Across all companies'
+        />
+      </Grid>
+      <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+        <CardStatVertical
+          title='Total Income'
+          stats={currency(stats.totalIncome)}
+          avatarIcon='ri-hand-coin-line'
+          avatarColor='success'
+          avatarSkin='light'
+          chipColor='secondary'
+          chipText='Across all companies'
+        />
+      </Grid>
+      <Grid size={{ xs: 12, sm: 6, md: 3 }}>
         <CardStatVertical
           title='Platform Revenue'
           stats={currency(stats.platformRevenue)}
@@ -52,11 +185,19 @@ const SuperAdminDashboardView = ({ userName }: Props) => {
           chipText='Monthly recurring, from active plans'
         />
       </Grid>
-      <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-        <CardStatVertical title='Active Plans' stats={String(stats.activePlans)} avatarIcon='ri-checkbox-circle-line' avatarColor='success' avatarSkin='light' chipColor='secondary' chipText='Subscriptions' />
+
+      {/* Subscriptions */}
+      <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+        <CardStatVertical title='Active Subscriptions' stats={String(stats.activePlans)} avatarIcon='ri-vip-crown-line' avatarColor='success' avatarSkin='light' chipColor='secondary' chipText='Subscriptions' />
       </Grid>
-      <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-        <CardStatVertical title='Expired Plans' stats={String(stats.expiredPlans)} avatarIcon='ri-close-circle-line' avatarColor='error' avatarSkin='light' chipColor='secondary' chipText='Subscriptions' />
+      <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+        <CardStatVertical title='Trial Subscriptions' stats={String(stats.trialSubscriptions)} avatarIcon='ri-time-line' avatarColor='warning' avatarSkin='light' chipColor='secondary' chipText='Subscriptions' />
+      </Grid>
+      <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+        <CardStatVertical title='Expired Subscriptions' stats={String(stats.expiredPlans)} avatarIcon='ri-close-circle-line' avatarColor='error' avatarSkin='light' chipColor='secondary' chipText='Subscriptions' />
+      </Grid>
+      <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+        <CardStatVertical title='Cancelled Subscriptions' stats={String(stats.cancelledSubscriptions)} avatarIcon='ri-close-line' avatarColor='secondary' avatarSkin='light' chipColor='secondary' chipText='Subscriptions' />
       </Grid>
     </Grid>
   )

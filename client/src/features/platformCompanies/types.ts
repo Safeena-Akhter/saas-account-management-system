@@ -2,6 +2,13 @@
 // server/src/services/platformCompany.service.ts - keep these in sync if
 // backend fields change.
 
+export type CompanyOwner = {
+  id: string
+  name: string
+  email: string
+  isActive: boolean
+} | null
+
 export type CompanyListItem = {
   id: string
   name: string
@@ -10,10 +17,11 @@ export type CompanyListItem = {
   phone: string | null
   isActive: boolean
   createdAt: string
-  _count: { users: number }
+  owner: CompanyOwner
+  _count: { users: number; customers: number; products: number; invoices: number }
   subscriptions: {
     billingCycle: 'MONTHLY' | 'YEARLY'
-    status: 'ACTIVE' | 'EXPIRED' | 'CANCELLED'
+    status: 'ACTIVE' | 'TRIAL' | 'EXPIRED' | 'CANCELLED'
     endDate: string
     plan: { id: string; name: string }
   }[]
@@ -38,7 +46,7 @@ export type CompanySubscriptionInfo = {
   planId: string
   planName: string
   billingCycle: 'MONTHLY' | 'YEARLY'
-  status: 'ACTIVE' | 'EXPIRED' | 'CANCELLED'
+  status: 'ACTIVE' | 'TRIAL' | 'EXPIRED' | 'CANCELLED'
   startDate: string
   endDate: string
   renewalStatus: string
@@ -57,6 +65,7 @@ export type CompanyStats = {
 
 export type CompanyDetailsResponse = {
   company: CompanyDetails
+  owner: CompanyOwner
   subscription: CompanySubscriptionInfo
   stats: CompanyStats
 }

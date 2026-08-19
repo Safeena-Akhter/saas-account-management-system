@@ -5,14 +5,13 @@ const nextConfig: NextConfig = {
   redirects: async () => {
     return [
       {
+        // '/' now serves the public landing page (see
+        // src/app/[lang]/(blank-layout-pages)/(guest-only)/page.tsx) instead
+        // of forcing every visitor straight into the dashboard. Authenticated
+        // visitors are still bounced to their role's dashboard by
+        // GuestOnlyRoute, which wraps that page server-side.
         source: '/',
-        destination: '/en/dashboards/crm',
-        permanent: true,
-        locale: false
-      },
-      {
-        source: '/:lang(en|fr|ar)',
-        destination: '/:lang/dashboards/crm',
+        destination: '/en',
         permanent: true,
         locale: false
       },

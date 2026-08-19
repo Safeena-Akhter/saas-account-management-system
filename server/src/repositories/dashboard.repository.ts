@@ -265,19 +265,82 @@ export async function recentActivities(companyId: string, limit = 8) {
 // -----------------------------------------------------------------------------
 
 export function countCompanies() {
-  return prisma.company.count();
+  return prisma.company.count({ where: { deletedAt: null } });
+}
+
+export function countActiveCompanies() {
+  return prisma.company.count({ where: { deletedAt: null, isActive: true } });
 }
 
 export function countSuspendedCompanies() {
-  return prisma.company.count({ where: { isActive: false } });
+  return prisma.company.count({ where: { deletedAt: null, isActive: false } });
 }
 
 export function countPlatformUsers() {
   return prisma.user.count();
 }
 
-export function countSubscriptionsByStatus(status: "ACTIVE" | "EXPIRED" | "CANCELLED") {
+export function countActivePlatformUsers() {
+  return prisma.user.count({ where: { isActive: true } });
+}
+
+export function countSubscriptionsByStatus(status: "ACTIVE" | "TRIAL" | "EXPIRED" | "CANCELLED") {
   return prisma.companySubscription.count({ where: { status } });
+}
+
+// Platform-wide totals across every company - same underlying tables as
+// the per-company counts above (countCustomers/countSuppliers/etc.), just
+// called without a companyId `where` clause so they aggregate across every
+// tenant. Kept as their own functions (rather than making companyId
+// optional on the existing ones) so every call site stays explicit about
+// whether it's asking for one company's number or the whole platform's.
+export function countAllCustomers() {
+  return prisma.customer.count();
+}
+
+export function countAllSuppliers() {
+  return prisma.supplier.count();
+}
+
+export function countAllProducts() {
+  return prisma.product.count();
+}
+
+export function countAllInvoices() {
+  return prisma.invoice.count({ where: { deletedAt: null } });
+}
+
+export async function sumAllPayments() {
+  const result = await prisma.payment.aggregate({
+    where: { status: "COMPLETED" },
+    _sum: { amount: true }
+  });
+
+  return Number(result._sum.amount ?? 0);
+}
+
+export function countAllPayments() {
+  return prisma.payment.count();
+}
+
+export async function sumAllExpenses() {
+  const result = await prisma.expense.aggregate({ _sum: { amount: true } });
+
+  return Number(result._sum.amount ?? 0);
+}
+
+export function countAllExpenses() {
+  return prisma.expense.count();
+}
+
+export async function sumAllIncome() {
+  const result = await prisma.income.aggregate({ _sum: { amount: true } });
+
+  return Number(result._sum.amount ?? 0);
+}
+
+export function countAllIncome() {
+  return prisma.income.count();
 }
 
 // Monthly Recurring Revenue (MRR) across every active subscription -

@@ -16,8 +16,8 @@ import { getUsageSummary } from "./planLimit.service";
 import type { AssignSubscriptionInput, ChangeMySubscriptionInput } from "../validators/subscription.validator";
 import type { BillingCycle } from "@prisma/client";
 
-export function listSubscriptions() {
-  return findAllSubscriptions();
+export function listSubscriptions(status?: "ACTIVE" | "TRIAL" | "EXPIRED" | "CANCELLED") {
+  return findAllSubscriptions(status);
 }
 
 export async function assignSubscription(input: AssignSubscriptionInput) {
@@ -46,7 +46,10 @@ export async function assignSubscription(input: AssignSubscriptionInput) {
   return createSubscriptionRow(input);
 }
 
-export async function updateSubscriptionStatus(subscriptionId: string, status: "ACTIVE" | "EXPIRED" | "CANCELLED") {
+export async function updateSubscriptionStatus(
+  subscriptionId: string,
+  status: "ACTIVE" | "TRIAL" | "EXPIRED" | "CANCELLED"
+) {
   // Looked up before the update purely to know which company to notify -
   // updateStatusRow itself still does the actual write via `id` alone, same
   // as before.

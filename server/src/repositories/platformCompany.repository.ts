@@ -10,6 +10,22 @@ import type { ListPlatformCompaniesQuery } from "../validators/platformCompany.v
 // read-only details after deletion; the list below never surfaces one.
 const notDeleted = { deletedAt: null } as const;
 
+// The company Owner is the User row with role = BUSINESS_OWNER for that
+// company - there's no separate `ownerId` column on Company (see
+// schema.prisma's Company model), same derivation as
+// platformCompany.service.ts's getCompanyDetails uses. `take: 1` because a
+// company can only ever have one BUSINESS_OWNER at creation time, though
+// user.service.ts's create/update flow does allow a second user to also
+// hold the BUSINESS_OWNER role later (co-owners) - this shows whichever
+// one was created first, which is the original/primary owner in every
+// normal case.
+const OWNER_SELECT = {
+  where: { role: "BUSINESS_OWNER" as const },
+  take: 1,
+  orderBy: { createdAt: "asc" as const },
+  select: { id: true, name: true, email: true, isActive: true }
+} satisfies Prisma.Company$usersArgs;
+
 const LIST_SELECT = {
   id: true,
   name: true,
@@ -18,9 +34,26 @@ const LIST_SELECT = {
   phone: true,
   isActive: true,
   createdAt: true,
-  _count: { select: { users: true } },
+  _count: {
+    select: {
+      users: true,
+      customers: true,
+      products: true,
+      // Filtered relation count - excludes soft-deleted invoices, same
+      // `deletedAt: null` rule getCompanyStats() and every other invoice
+      // query in this codebase already applies.
+      invoices: { where: { deletedAt: null } }
+    }
+  },
+  users: OWNER_SELECT,
   subscriptions: {
-    where: { status: "ACTIVE" as const },
+    // ACTIVE and TRIAL are both "currently live" subscription states (a
+    // company on a Plan.Feature trial hasn't been billed yet but is very
+    // much using the platform) - EXPIRED/CANCELLED are deliberately
+    // excluded here since this column shows the *current* plan, not
+    // subscription history. See findByIdForAdmin below for the equivalent
+    // on the company details screen.
+    where: { status: { in: ["ACTIVE", "TRIAL"] as const } },
     take: 1,
     orderBy: { createdAt: "desc" as const },
     select: {
@@ -100,6 +133,7 @@ export function findByIdForAdmin(id: string) {
   return prisma.company.findUnique({
     where: { id },
     include: {
+      users: OWNER_SELECT,
       subscriptions: {
         take: 1,
         orderBy: { createdAt: "desc" },

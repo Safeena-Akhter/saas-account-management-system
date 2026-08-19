@@ -29,6 +29,7 @@ import {
   updatePassword
 } from "../repositories/user.repository";
 import { assignFreePlanToNewCompany } from "./subscription.service";
+import { isMaintenanceModeOn } from "../repositories/platformSettings.repository";
 import { AppError } from "../utils/AppError";
 import { durationFromNow } from "../utils/duration";
 import { comparePassword, hashPassword } from "../utils/hash";
@@ -185,6 +186,15 @@ export async function login(input: LoginInput, meta: SessionMeta = {}) {
 
   if (!user.isActive) {
     throw new AppError("This account has been deactivated. Contact your administrator.", 403);
+  }
+
+  // Maintenance mode blocks every sign-in except SUPER_ADMIN's, so
+  // whoever turned it on can always get back in to turn it back off.
+  // Checked after isActive/before the password check - a suspended
+  // account should still see "account deactivated" rather than a
+  // maintenance message that implies it'd otherwise work.
+  if (user.role !== "SUPER_ADMIN" && (await isMaintenanceModeOn())) {
+    throw new AppError("The platform is currently undergoing maintenance. Please try again shortly.", 503);
   }
 
   if (!user.emailVerifiedAt) {

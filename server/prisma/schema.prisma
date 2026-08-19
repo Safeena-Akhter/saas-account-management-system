@@ -36,6 +36,7 @@ enum PaymentMethod {
 
 enum SubscriptionStatus {
   ACTIVE
+  TRIAL
   EXPIRED
   CANCELLED
 }
@@ -758,4 +759,25 @@ model CompanySubscription {
   @@index([planId])
   @@index([status])
   @@map("company_subscriptions")
+}
+
+// Singleton row (id is always the literal "platform" - never a second row)
+// holding platform-wide operational settings, distinct from a User's
+// personal Settings (profile/security/preferences, see SettingsPage.tsx) -
+// this is Super Admin configuring the platform itself, not their own
+// account. `maintenanceMode` is genuinely enforced: auth.service.ts's
+// login() blocks non-SUPER_ADMIN sign-ins while it's on, so SUPER_ADMIN
+// can always still get in to turn it back off.
+model PlatformSettings {
+  id String @id @default("platform")
+
+  platformName String  @default("AccounTrack")
+  supportEmail String?
+  supportPhone String?
+
+  maintenanceMode Boolean @default(false)
+
+  updatedAt DateTime @updatedAt
+
+  @@map("platform_settings")
 }
