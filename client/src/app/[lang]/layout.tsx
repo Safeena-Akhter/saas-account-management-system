@@ -30,7 +30,10 @@ import '@assets/iconify-icons/generated-icons.css'
 
 export const metadata = {
   title: 'AccounTrack - Account Management System',
-  description: 'AccounTrack - Multi-tenant SaaS Account Management System'
+  description: 'AccounTrack - Multi-tenant SaaS Account Management System',
+  icons: {
+    icon: '/favicon.ico?v=2'
+  }
 }
 
 const RootLayout = async (props: ChildrenType & { params: Promise<{ lang: string }> }) => {

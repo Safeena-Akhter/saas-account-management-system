@@ -1,8 +1,10 @@
+// Next.js Imports
+import type { Metadata } from 'next'
+
 // Type Imports
 import type { ChildrenType } from '@core/types'
 import type { Locale } from '@configs/i18n'
 
-// Component Imports
 import Providers from '@components/Providers'
 import BlankLayout from '@layouts/BlankLayout'
 
@@ -11,6 +13,19 @@ import { i18n } from '@configs/i18n'
 
 // Util Imports
 import { getSystemMode } from '@core/utils/serverHelpers'
+
+export const metadata: Metadata = {
+  title: {
+    template: '%s | AccountTrack',
+    default: 'AccountTrack - SaaS Account Management System'
+  },
+  description: 'Multi-tenant SaaS Account Management System',
+  icons: {
+    icon: '/favicon.ico',
+    shortcut: '/favicon.ico',
+    apple: '/apple-touch-icon.png'
+  }
+}
 
 type Props = ChildrenType & {
   params: Promise<{ lang: string }>

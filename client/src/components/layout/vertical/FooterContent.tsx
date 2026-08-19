@@ -1,16 +1,13 @@
 'use client'
 
-// Next Imports
 import Link from 'next/link'
 
-// Third-party Imports
 import classnames from 'classnames'
 
-// Hook Imports
-import useVerticalNav from '@menu/hooks/useVerticalNav'
+import useVerticalNav from '../../../@menu/hooks/useVerticalNav'
 
 // Util Imports
-import { verticalLayoutClasses } from '@layouts/utils/layoutClasses'
+import { verticalLayoutClasses } from '../../../@layouts/utils/layoutClasses'
 
 const FooterContent = () => {
   // Hooks
@@ -21,30 +18,20 @@ const FooterContent = () => {
       className={classnames(verticalLayoutClasses.footerContent, 'flex items-center justify-between flex-wrap gap-4')}
     >
       <p>
-        <span className='text-textSecondary'>{`© ${new Date().getFullYear()}, Made with `}</span>
-        <span>{`❤️`}</span>
-        <span className='text-textSecondary'>{` by `}</span>
-        <Link href='https://pixinvent.com' target='_blank' className='text-primary capitalize'>
-          Pixinvent
-        </Link>
+        <span className='text-textSecondary'>{`© ${new Date().getFullYear()} `}</span>
+        <span className='font-semibold text-textPrimary'>AccountTrack</span>
+        <span className='text-textSecondary'>{`. All rights reserved.`}</span>
       </p>
       {!isBreakpointReached && (
         <div className='flex items-center gap-4'>
-          <Link href='https://themeforest.net/licenses/standard' target='_blank' className='text-primary'>
-            License
+          <Link href='/privacy-policy' className='text-primary hover:underline'>
+            Privacy Policy
           </Link>
-          <Link href='https://themeforest.net/user/pixinvent/portfolio' target='_blank' className='text-primary'>
-            More Themes
+          <Link href='/terms-of-service' className='text-primary hover:underline'>
+            Terms of Service
           </Link>
-          <Link
-            href='https://demos.pixinvent.com/materialize-nextjs-admin-template/documentation'
-            target='_blank'
-            className='text-primary'
-          >
-            Documentation
-          </Link>
-          <Link href='https://pixinvent.ticksy.com' target='_blank' className='text-primary'>
-            Support
+          <Link href='/support' className='text-primary hover:underline'>
+            Support & Help
           </Link>
         </div>
       )}
